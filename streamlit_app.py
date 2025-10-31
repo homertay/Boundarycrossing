@@ -1,137 +1,207 @@
-import json
 import streamlit as st
 import plotly.graph_objects as go
+from dataclasses import dataclass
 
-# -------------------------
-# 20 items grounded in boundary-crossing theory
-# -------------------------
-QUESTIONS = [
-    # Identification
-    {"id": 1, "mechanism": "Identification", "text": "I can name the key differences in goals and language between my team and a partner team."},
-    {"id": 2, "mechanism": "Identification", "text": "Before collaborating, I map stakeholders’ incentives, constraints, and decision rights."},
-    {"id": 3, "mechanism": "Identification", "text": "I notice when two groups use different terms for the same idea and call it out to align meaning."},
-    {"id": 4, "mechanism": "Identification", "text": "I can articulate my team’s norms and blind spots without becoming defensive."},
-    {"id": 5, "mechanism": "Identification", "text": "I deliberately observe how boundaries (departmental, cultural, or professional) shape decision-making in my organisation."},
+# ------------------------------------------------------------
+# Theoretical frame (Akkerman & Bakker, 2011):
+#   Identification · Coordination · Reflection · Transformation
+# Each scenario option maps to one mechanism.
+# ------------------------------------------------------------
 
-    # Coordination
-    {"id": 6, "mechanism": "Coordination", "text": "I introduce shared artefacts (logic models, dashboards, templates) to coordinate work across groups."},
-    {"id": 7, "mechanism": "Coordination", "text": "I simplify jargon and translate between technical and non-technical colleagues in real time."},
-    {"id": 8, "mechanism": "Coordination", "text": "I design lightweight routines that help information move smoothly between teams."},
-    {"id": 9, "mechanism": "Coordination", "text": "When priorities clash, I negotiate minimal viable agreements so work can continue."},
-    {"id": 10, "mechanism": "Coordination", "text": "I help different groups use a common framework or language to describe their outcomes."},
+st.set_page_config(page_title="Voyage of Discovery: Boundary-Crossing Diagnostic",
+                   page_icon="🧭", layout="centered")
 
-    # Reflection
-    {"id": 11, "mechanism": "Reflection", "text": "Working with people from other disciplines often changes how I think about my own work."},
-    {"id": 12, "mechanism": "Reflection", "text": "I seek feedback from colleagues who see a challenge from a completely different angle."},
-    {"id": 13, "mechanism": "Reflection", "text": "I pause projects occasionally to ask, 'What assumptions are we making here?'"},    
-    {"id": 14, "mechanism": "Reflection", "text": "I share stories of what I’ve learned from mistakes or mismatched expectations."},
-    {"id": 15, "mechanism": "Reflection", "text": "I use reflective spaces (retrospectives, journaling, dialogue) to make learning visible."},
+st.title("🧭 Voyage of Discovery: Boundary-Crossing Diagnostic")
+st.caption("A short, scenario-based assessment grounded in boundary-crossing theory (Akkerman & Bakker, 2011).")
 
-    # Transformation
-    {"id": 16, "mechanism": "Transformation", "text": "I co-create new ways of working that combine multiple frameworks or disciplines."},
-    {"id": 17, "mechanism": "Transformation", "text": "I test boundary-spanning solutions with diverse users before scaling."},
-    {"id": 18, "mechanism": "Transformation", "text": "I tell integrative stories that help different stakeholders see a shared vision."},
-    {"id": 19, "mechanism": "Transformation", "text": "I willingly retire legacy practices when a better co-created alternative appears."},
-    {"id": 20, "mechanism": "Transformation", "text": "I mentor others to design across boundaries and sustain collaborative practices."},
+with st.expander("What this measures (theory → practice)", expanded=False):
+    st.markdown("""
+- **Identification** — seeing differences clearly; naming roles, goals, and limits.  
+- **Coordination** — building bridges (shared routines, artefacts, and agreements).  
+- **Reflection** — learning via perspective-taking; double-loop learning.  
+- **Transformation** — co-creating new practices that integrate worlds.  
+Each scenario presents four legitimate leadership moves, *one per mechanism*.
+""")
+
+# -------------------- Scenario model --------------------
+@dataclass
+class Scenario:
+    key: str
+    title: str
+    blurb: str
+    options: list  # list of (label, mechanism)
+
+SCENARIOS = [
+    Scenario(
+        key="s1",
+        title="1) The Crew Before Departure (Nanjing, 1410)",
+        blurb=("Time is short before sailing. Your crew are loyal but many are strangers to each other. "
+               "You can only choose one approach before leaving port."),
+        options=[
+            ("Personally meet small groups to learn their stories and expectations.", "Identification"),
+            ("Host a grand banquet so everyone bonds through celebration.", "Coordination"),
+            ("Ask lieutenants to observe morale while you focus on logistics.", "Reflection"),
+            ("Launch a co-authored 'Fleet Code' that defines shared purpose.", "Transformation"),
+        ],
+    ),
+    Scenario(
+        key="s2",
+        title="2) The Dragon Captains Arrive",
+        blurb=("Reinforcements trained in the Dragon style join your Phoenix-style fleet. Cohesion hangs in the balance."),
+        options=[
+            ("Let Dragon captains keep their style as long as orders are obeyed.", "Identification"),
+            ("Standardise immediately: all ships adopt Phoenix methods.", "Coordination"),
+            ("Create a mixed council to design hybrid manoeuvres together.", "Transformation"),
+            ("Observe both styles in action before deciding.", "Reflection"),
+        ],
+    ),
+    Scenario(
+        key="s3",
+        title="3) Ping and Wong’s Dispute",
+        blurb=("Two senior officers clash: Wong urges caution; Ping pushes innovation. Their tension spreads and both seek your ruling."),
+        options=[
+            ("Side with Wong: safety first; discipline keeps fleets alive.", "Identification"),
+            ("Support Ping’s experiment: progress needs boldness.", "Transformation"),
+            ("Convene both to co-design a blended solution they present jointly.", "Coordination"),
+            ("Coach each privately to see the other’s perspective.", "Reflection"),
+        ],
+    ),
+    Scenario(
+        key="s4",
+        title="4) Fei, the Quiet Innovator",
+        blurb=("A junior cartographer (Fei) secretly improves outdated maps but fears public attention. How do you handle his contribution?"),
+        options=[
+            ("Announce the improvement yourself, crediting Fei publicly.", "Coordination"),
+            ("Co-present with Fei at the next briefing; support his stretch.", "Reflection"),
+            ("Ask Fei to lead the presentation; empower him into visibility.", "Transformation"),
+            ("Praise Fei privately; honour his comfort and boundaries.", "Identification"),
+        ],
+    ),
+    Scenario(
+        key="s5",
+        title="5) Pirates in the Straits of Malacca",
+        blurb=("Pirates terrorise trade near Malacca. The Sultan begs for help. Your response will shape Ming’s legacy."),
+        options=[
+            ("Launch the full fleet to crush the pirate strongholds decisively.", "Coordination"),
+            ("Deploy a Ming squadron to train Malacca’s sailors to defend themselves.", "Transformation"),
+            ("Lead joint patrols, alternating command and sharing tactics.", "Reflection"),
+            ("Send arms and supplies; let Malacca manage its own defence.", "Identification"),
+        ],
+    ),
 ]
 
-# Archetype mapping
-ARCHETYPES = {
-    "Boundary Mapper": {"mechanisms": ["Identification"], "emoji": "🗺",
-        "summary": "Sees and names boundaries clearly; surfaces invisible assumptions.",
-        "tip": "Move from describing boundaries to designing crossings."},
-    "Bridge Architect": {"mechanisms": ["Coordination"], "emoji": "🔗",
-        "summary": "Builds routines and artefacts that connect diverse people and systems.",
-        "tip": "Balance process with purpose—connect hearts as well as systems."},
-    "Reflective Sense-Maker": {"mechanisms": ["Reflection"], "emoji": "🪞",
-        "summary": "Turns difference into learning; models curiosity and psychological safety.",
-        "tip": "Translate reflection into one visible change."},
-    "Ecosystem Catalyst": {"mechanisms": ["Transformation"], "emoji": "🌾",
-        "summary": "Co-creates new practices and stories that unite perspectives.",
-        "tip": "Codify innovations so others can adopt them."},
-    "System Navigator": {"mechanisms": ["Identification", "Coordination"], "emoji": "🧭",
-        "summary": "Connects strategy, people, and data; aligns agendas across levels.",
-        "tip": "Slow down for reflection—make learning visible."},
-    "Integrative Weaver": {"mechanisms": ["Identification","Coordination","Reflection","Transformation"], "emoji": "🕸",
-        "summary": "Balances mapping, bridging, reflecting, and transforming; mentors others to weave.",
-        "tip": "Build institutional pathways so weaving continues beyond you."}
-}
+# -------------------- State --------------------
+if "answers" not in st.session_state:
+    st.session_state.answers = {}
 
-# --- Streamlit App ---
-st.set_page_config(page_title="Boundary-Crossing Leadership Survey", page_icon="🧭", layout="centered")
-st.title("🧭 Boundary-Crossing Leadership Survey")
-st.write("""
-20 statements measure how you lead across boundaries—grounded in Akkerman & Bakker’s
-mechanisms: **Identification, Coordination, Reflection, Transformation**.
-""")
+st.markdown("### Make your choices")
+st.write("Each scenario offers four **legitimate** leadership moves. Choose what you would most likely do.")
 
-with st.expander("What these mechanisms mean"):
-    st.markdown("""
-- **Identification** – seeing differences clearly and naming boundaries  
-- **Coordination** – building bridges through shared tools and routines  
-- **Reflection** – learning by seeing through others’ perspectives  
-- **Transformation** – co-creating new practices that integrate worlds
-""")
+# Render scenarios
+for sc in SCENARIOS:
+    st.markdown(f"#### {sc.title}")
+    st.write(sc.blurb)
+    choice = st.radio("Your decision:", [opt for opt, mech in sc.options],
+                      key=f"radio_{sc.key}", index=None, label_visibility="collapsed")
+    st.session_state.answers[sc.key] = choice
+    st.divider()
 
-st.divider()
-responses = {}
-for q in QUESTIONS:
-    responses[q["id"]] = st.slider(f"{q['id']}. {q['text']}", 1, 5, 3)
+# -------------------- Submit --------------------
+if st.button("See my leadership profile"):
+    # Check all answered
+    unanswered = [s.title for s in SCENARIOS if not st.session_state.answers.get(s.key)]
+    if unanswered:
+        st.error("Please answer all scenarios to continue.")
+        st.stop()
 
-if st.button("Calculate My Profile"):
-    # Aggregate
-    sums, counts = {}, {}
-    for q in QUESTIONS:
-        m = q["mechanism"]
-        sums[m] = sums.get(m,0) + responses[q["id"]]
-        counts[m] = counts.get(m,0) + 1
-    avg = {m: round(sums[m]/counts[m],2) for m in sums}
+    # Score mechanisms
+    scores = {"Identification":0, "Coordination":0, "Reflection":0, "Transformation":0}
+    for sc in SCENARIOS:
+        choice = st.session_state.answers[sc.key]
+        mech = next(m for (opt,m) in sc.options if opt == choice)
+        scores[mech] += 1
 
-    st.subheader("Your Mechanism Scores")
-    st.write(avg)
-
-    # Radar
-    cats = list(avg.keys())
-    vals = list(avg.values())
+    # Radar chart
+    st.subheader("Your boundary-crossing mechanism profile")
+    cats = list(scores.keys())
+    vals = [scores[c] for c in cats]
     fig = go.Figure()
-    fig.add_trace(go.Scatterpolar(r=vals+[vals[0]], theta=cats+[cats[0]], fill='toself'))
-    fig.update_layout(polar=dict(radialaxis=dict(visible=True, range=[1,5])), showlegend=False)
+    fig.add_trace(go.Scatterpolar(r=vals+[vals[0]], theta=cats+[cats[0]], fill='toself', name='Profile'))
+    fig.update_layout(polar=dict(radialaxis=dict(visible=True, range=[0,5])), showlegend=False,
+                      margin=dict(l=10,r=10,t=10,b=10))
     st.plotly_chart(fig, use_container_width=True)
 
-    # Determine archetype
-    spread = max(avg.values()) - min(avg.values())
-    if spread <= 0.4:
-        archetype = "Integrative Weaver"
-    elif abs(avg["Identification"] - avg["Coordination"]) <= 0.2 and \
-         avg["Identification"] > avg["Reflection"]+0.3 and avg["Identification"] > avg["Transformation"]+0.3:
-        archetype = "System Navigator"
-    else:
-        top = max(avg, key=avg.get)
-        mapping = {
-            "Identification": "Boundary Mapper",
-            "Coordination": "Bridge Architect",
-            "Reflection": "Reflective Sense-Maker",
-            "Transformation": "Ecosystem Catalyst"
+    # ---------------- Archetype mapping ----------------
+    archetypes = {
+        "Boundary Mapper": {
+            "sig": ("Identification",),
+            "emoji": "🗺",
+            "desc": "You define edges clearly and give language to differences. People rely on you to bring order when things blur.",
+            "stretch": "Move from describing boundaries to designing one concrete crossing (ritual, artefact, or shared metric)."
+        },
+        "Bridge Architect": {
+            "sig": ("Coordination",),
+            "emoji": "🔗",
+            "desc": "You connect people and systems through routines, agreements, and shared tools. You turn conflict into workflow.",
+            "stretch": "Balance process with purpose—open with a shared ‘why’, not only the ‘how’."
+        },
+        "Reflective Helmsman": {
+            "sig": ("Reflection",),
+            "emoji": "🪞",
+            "desc": "You learn by listening and reframing. Your calm, perspective-taking presence creates psychological safety under pressure.",
+            "stretch": "Translate reflection into one visible shift in behaviour, metric, or decision."
+        },
+        "Ecosystem Catalyst": {
+            "sig": ("Transformation",),
+            "emoji": "🌾",
+            "desc": "You integrate worlds and prototype new practices. People move with you because change feels purposeful, not chaotic.",
+            "stretch": "Codify what works so others can adopt it—a one-page pattern or checklist."
+        },
+        "Diplomatic Navigator": {
+            "sig": ("Coordination","Reflection"),
+            "emoji": "🧭",
+            "desc": "You balance empathy with structure. You orchestrate alliances and keep diverse groups moving without losing trust.",
+            "stretch": "Experiment sooner with small pilots—let action inform consensus."
+        },
+        "Integrative Weaver": {
+            "sig": ("Identification","Coordination","Reflection","Transformation"),
+            "emoji": "🕸",
+            "desc": "You move fluidly across mapping, bridging, reflecting, and transforming. You mentor others to cross boundaries with you.",
+            "stretch": "Protect your energy—build pathways so weaving continues beyond you."
         }
-        archetype = mapping[top]
+    }
 
-    info = ARCHETYPES[archetype]
-    st.markdown(f"## Your Archetype: {info['emoji']} **{archetype}**")
-    st.write(info["summary"])
-    st.markdown(f"**Growth tip:** {info['tip']}")
+    # Decide archetype
+    # If scores are all within 1 point → Weaver
+    if max(scores.values()) - min(scores.values()) <= 1:
+        archetype = "Integrative Weaver"
+    else:
+        # Diplomatic Navigator if C and R tie for top (or near-top) and exceed others
+        if abs(scores["Coordination"] - scores["Reflection"]) == 0 and \
+           scores["Coordination"] >= max(scores["Identification"], scores["Transformation"]):
+            archetype = "Diplomatic Navigator"
+        else:
+            top_mech = max(scores, key=scores.get)
+            mapping = {
+                "Identification":"Boundary Mapper",
+                "Coordination":"Bridge Architect",
+                "Reflection":"Reflective Helmsman",
+                "Transformation":"Ecosystem Catalyst"
+            }
+            archetype = mapping[top_mech]
 
-    st.download_button(
-        "Download My Results (JSON)",
-        data=json.dumps({"scores": avg, "archetype": archetype}, indent=2),
-        file_name="boundary_profile.json",
-        mime="application/json"
-    )
+    info = archetypes[archetype]
+    st.markdown(f"## Your leadership archetype: {info['emoji']} **{archetype}**")
+    st.write(info["desc"])
+    st.markdown(f"**Stretch practice:** {info['stretch']}")
 
-st.divider()
-st.markdown("""
-**Theory Anchors**
-- Akkerman & Bakker (2011) Boundary Crossing & Boundary Objects  
-- Star & Griesemer (1989) Boundary Objects  
-- Carlile (2004) Knowledge Boundaries  
-- Wenger (1998) Communities of Practice (brokering)
+    st.markdown("> **Reflection prompt:** Where in your current voyage (team, project, classroom) could you cross one boundary this month?")
+
+    st.markdown("---")
+    with st.expander("Theory sources", expanded=False):
+        st.markdown("""
+- Akkerman, S. & Bakker, A. (2011). Boundary crossing & boundary objects.  
+- Star, S. L. & Griesemer, J. (1989). Boundary objects.  
+- Carlile, P. (2004). Knowledge boundaries.  
+- Wenger, E. (1998). Communities of Practice (brokering).
 """)
