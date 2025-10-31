@@ -1,336 +1,344 @@
 import streamlit as st
 import plotly.graph_objects as go
-import random
+import random, json
+from datetime import datetime
 
-st.set_page_config(page_title="Voyage of Discovery — Ming Leadership", page_icon="🧭", layout="centered")
+# ------------------------------------------------------------
+# App configuration
+# ------------------------------------------------------------
+st.set_page_config(page_title="The Boundary Compass", page_icon="🧭", layout="centered")
 
-st.title("🧭 Voyage of Discovery — Ming Leadership Through Boundaries")
-st.caption("A 16-scenario, story-driven diagnostic grounded in Akkerman & Bakker’s boundary-crossing mechanisms.")
+TITLE = "🧭 The Boundary Compass — Learning at the Edge"
+SUB = "Explore your boundary-crossing style across sticky, real-world dilemmas."
 
-with st.expander("What this measures (theory → practice)", expanded=False):
-    st.markdown("""
-**Boundary-Crossing Mechanisms (Akkerman & Bakker, 2011)**  
-- **Identification (I)** — seeing differences clearly; naming roles, goals, limits  
-- **Coordination (C)** — building bridges: routines, artefacts, agreements  
-- **Reflection (R)** — learning via perspective-taking and sense-making  
-- **Transformation (T)** — co-creating new practices that integrate worlds  
+# ------------------------------------------------------------
+# Utility text
+# ------------------------------------------------------------
+INTRO = """
+**Why this game?**
 
-Leaders develop organisations not by eliminating boundaries, but by **strengthening capacity to work across them**.
-""")
+In complex work, many problems live at **boundaries** — between roles, functions, values, or systems.
+Research shows that learning at these edges tends to happen through four mechanisms:
 
-# ---------------- Scenarios (16) ----------------
-# Each scenario has 4 options, each mapped to I/C/R/T
+- **Identification (I)** — seeing and naming differences & boundaries clearly  
+- **Coordination (C)** — building shared routines, tools, and agreements  
+- **Reflection (R)** — making sense across perspectives through dialogue  
+- **Transformation (T)** — prototyping hybrid practices and embedding change  
+
+Choose what you would **most likely** do in each scenario. At the end, you’ll see your
+**Boundary Compass** profile, a **leadership archetype**, and stretch prompts to grow.
+"""
+
+FOOTER = """
+*Boundary Compass mechanisms based on educational research on boundary crossing and boundary objects
+(Akkerman & Bakker, 2011).*  
+"""
+
+# ------------------------------------------------------------
+# Scenario bank — 12 Singapore/ASEAN-sensitive "sticky/wicked" dilemmas
+# Each scenario: title, context (short), why_tricky, options[(label, mechanism)]
+# ------------------------------------------------------------
 SCENARIOS = [
-    # LENS 1 — Bureaucratic & Hierarchical
     {
-        "k": "s1", "icon": "🏯",
-        "title": "The Emperor’s Commission (Nanjing, 1405)",
-        "blurb": "The Yongle Emperor orders the first great voyage. You must balance ambition and realism in your plan.",
+        "key": "s1",
+        "title": "AI & Ethics — Mis-send Incident",
+        "context": "A GenAI assistant improves speed, but one draft email with customer data was auto-sent to the wrong party.",
+        "why": "Speed, ethics, and trust collide; compliance wants a pause, business wants a fast fix.",
         "opts": [
-            ("Present exact logistics and constraints to set expectations.", "I"),
-            ("Promise swift success to secure full imperial support.", "C"),
-            ("Seek lessons from senior eunuchs who ran prior expeditions.", "R"),
-            ("Co-design an adaptive plan with the Ministry of Works.", "T"),
+            ("Pause AI usage temporarily and restate the governance boundary.", "I"),
+            ("Introduce a human review step and a data-steward role before sends.", "C"),
+            ("Facilitate a learning debrief on trust, oversight and accountability.", "R"),
+            ("Redesign the workflow: ethical guardrails + literacy training + pipeline checks.", "T"),
         ],
     },
     {
-        "k": "s2", "icon": "📜",
-        "title": "The Court’s Doubt (Beijing)",
-        "blurb": "Confucian officials criticise the cost of expeditions. Your response will shape political support.",
+        "key": "s2",
+        "title": "Psychological Safety — Broken Promise",
+        "context": "A staff member shared candidly in a 'speak-up' session; later it appeared in her performance review.",
+        "why": "The formal system undermined the informal one; trust suffered.",
         "opts": [
-            ("Reiterate loyalty to imperial will; obey and proceed.", "I"),
-            ("Invite ministers to review shipyards, logs, and stores.", "C"),
-            ("Acknowledge their caution; convene a dialogue on risks.", "R"),
-            ("Form an advisory council blending naval and scholarly insight.", "T"),
+            ("Clarify the rule: feedback spaces are confidential and non-evaluative.", "I"),
+            ("Co-create and publish a 'safe dialogue' code co-owned by HR and managers.", "C"),
+            ("Hold a reflective conversation about fear and safety in this context.", "R"),
+            ("Design a new feedback process: anonymised channels + peer-led debriefs.", "T"),
         ],
     },
     {
-        "k": "s3", "icon": "🧭",
-        "title": "Chain of Command (Yard of Nanjing)",
-        "blurb": "Captains below you compete for status and access. Cohesion is fraying.",
+        "key": "s3",
+        "title": "Burnout vs Performance — Hero Culture",
+        "context": "One team hits targets by routinely working nights/weekends; leaders praise 'commitment'. Others push back.",
+        "why": "Productivity signals clash with sustainability and wellbeing.",
         "opts": [
-            ("Reassert hierarchy and expected conduct.", "I"),
-            ("Clarify reporting lines and cadence of councils.", "C"),
-            ("Coach captains privately on shared purpose and roles.", "R"),
-            ("Rotate command via a captains’ council to build ownership.", "T"),
+            ("Reaffirm that wellbeing is non-negotiable; define red lines.", "I"),
+            ("Track workload/rest in a transparent dashboard (not just output).", "C"),
+            ("Invite stories: what do we believe about sacrifice and success?", "R"),
+            ("Pilot 'deep-work weeks' that reward efficiency over hours, then codify.", "T"),
         ],
     },
     {
-        "k": "s4", "icon": "🌩️",
-        "title": "Lessons from Failure (Storm Report)",
-        "blurb": "A storm destroys several supply ships. The Emperor awaits your account.",
+        "key": "s4",
+        "title": "Diversity Fatigue — Purple Parade",
+        "context": "Annual inclusion activities aligned with The Purple Parade see low engagement; some call it 'symbolic'.",
+        "why": "Good intent, weak resonance; inclusion risks performativity.",
         "opts": [
-            ("Attribute losses to fate and natural hazard.", "I"),
-            ("Deliver audit and introduce new safety routines.", "C"),
-            ("Hold fleet-wide reflection to surface missed signals.", "R"),
-            ("Redesign logistics with shared accountability across teams.", "T"),
-        ],
-    },
-
-    # LENS 2 — Functional & Technical
-    {
-        "k": "s5", "icon": "⚓",
-        "title": "The Shipwrights’ Dispute (Fujian vs Nanjing)",
-        "blurb": "Artisans argue over hull design: proven stability vs speed and cargo efficiency.",
-        "opts": [
-            ("Choose one proven design for consistency.", "I"),
-            ("Standardise blueprints from both schools.", "C"),
-            ("Run comparative trials and share results.", "R"),
-            ("Commission a hybrid model combining strengths.", "T"),
+            ("Re-articulate the purpose: accessibility, belonging, and impact (not optics).", "I"),
+            ("Form a cross-functional inclusion team to co-design meaningful actions.", "C"),
+            ("Use story circles: hear lived experiences and barriers staff face.", "R"),
+            ("Shift from 'event day' to year-round practices (accessibility reviews, hiring).", "T"),
         ],
     },
     {
-        "k": "s6", "icon": "✨",
-        "title": "Stars or Compass (Navigation Doctrine)",
-        "blurb": "Veterans trust stars; younger crews back the magnetic compass. Doctrine is divided.",
+        "key": "s5",
+        "title": "Regulation vs Innovation — MAS Uncertainty",
+        "context": "A fintech idea uses digital IDs; Compliance blocks it, citing unclear MAS guidance; CEO asks 'find a way'.",
+        "why": "Legal-risk vs innovation ambition; ambiguity is real.",
         "opts": [
-            ("Keep methods separate; assign by crew preference.", "I"),
-            ("Run parallel tests and log performance findings.", "C"),
-            ("Facilitate open debate on merits and limits.", "R"),
-            ("Integrate both into a new unified navigation doctrine.", "T"),
+            ("Define non-negotiables clearly: what rules forbid vs what’s unclear.", "I"),
+            ("Stand up a 'sandbox' charter with checkpoints and shared criteria.", "C"),
+            ("Host a dialogue on risk appetite across teams; surface assumptions.", "R"),
+            ("Prototype a low-risk variant within guidelines to test assumptions.", "T"),
         ],
     },
     {
-        "k": "s7", "icon": "🥖",
-        "title": "Supply Shortage in Calicut",
-        "blurb": "Merchants hoard grain; engineers warn of rationing. Morale could decay.",
+        "key": "s6",
+        "title": "Regional Inequity — Bonus Benchmarks",
+        "context": "HQ sets bonuses pegged to global markets; ASEAN branches feel unseen.",
+        "why": "Justice, power, and belonging across regions.",
         "opts": [
-            ("Impose quota by rank; protect chain of command.", "I"),
-            ("Issue daily distribution through officers with records.", "C"),
-            ("Hold crew councils to weigh trade-offs and options.", "R"),
-            ("Partner with local markets for rapid restock innovation.", "T"),
+            ("Name the inequity and define fairness across contexts explicitly.", "I"),
+            ("Create a transparent weighting matrix for different economies.", "C"),
+            ("Run reflection circles on value and recognition regionally.", "R"),
+            ("Co-create a differentiated rewards framework with HQ & local leaders.", "T"),
         ],
     },
     {
-        "k": "s8", "icon": "🔔",
-        "title": "The Bronze Bell Problem",
-        "blurb": "Ritual purity vs practical signaling: bell makers vs sailors.",
+        "key": "s7",
+        "title": "Toxic Talent — High Performance, Low Respect",
+        "context": "A star leader drives revenue but mistreats people; complaints are mounting.",
+        "why": "Loyalty and fear vs culture and values; moral injury risk.",
         "opts": [
-            ("Respect ritual specification as is.", "I"),
-            ("Adapt ritual form to naval signaling needs.", "C"),
-            ("Dialogue between artisans and sailors on use contexts.", "R"),
-            ("Commission a new alloy bell fit for both ceremony and sea.", "T"),
-        ],
-    },
-
-    # LENS 3 — Cultural & Diplomatic
-    {
-        "k": "s9", "icon": "🤝",
-        "title": "Envoys of Malacca",
-        "blurb": "The Sultan requests protection from Siam; the straits are strategic.",
-        "opts": [
-            ("Issue a decree asserting Ming protection.", "I"),
-            ("Formalise protectorate by treaty and escorts.", "C"),
-            ("Deepen relationship through cultural exchange first.", "R"),
-            ("Train Malaccans to self-defend and co-patrol.", "T"),
+            ("Clarify zero-tolerance values and what 'performance' includes.", "I"),
+            ("Establish a fair escalation/remediation protocol with Ethics & Legal.", "C"),
+            ("Facilitate a reflective session on courage, fear, and complicity.", "R"),
+            ("Shift metrics from solitary heroism to team-based performance.", "T"),
         ],
     },
     {
-        "k": "s10", "icon": "🦒",
-        "title": "The Giraffe from Malindi",
-        "blurb": "A giraffe arrives as a wonder-gift from Africa. How do you respond?",
+        "key": "s8",
+        "title": "Digital Divide — Intergenerational Tension",
+        "context": "New systems roll out fast; senior colleagues feel left behind; jokes about 'boomer pace'.",
+        "why": "Capability gap + stereotypes; retention risk of experience.",
         "opts": [
-            ("Parade it as imperial tribute to Heaven’s favour.", "I"),
-            ("Catalogue it formally via the Bureau of Rites.", "C"),
-            ("Reflect publicly on learning from distant knowledge.", "R"),
-            ("Establish envoys for scientific and cultural exchange.", "T"),
+            ("Set the inclusion boundary: no ageism; learning is for all.", "I"),
+            ("Pair younger 'digital coaches' with senior staff; schedule learning blocks.", "C"),
+            ("Hold a perspective-taking dialogue on biases and strengths.", "R"),
+            ("Launch an intergenerational innovation project and embed the model.", "T"),
         ],
     },
     {
-        "k": "s11", "icon": "🏴‍☠️",
-        "title": "Pirates or Patriots (Sumatra)",
-        "blurb": "Local ‘pirates’ claim to defend native merchants from taxes.",
+        "key": "s9",
+        "title": "Environmental Accountability — Green Claims",
+        "context": "Marketing touts 'green finance' but portfolio still includes heavy emitters.",
+        "why": "Reputation vs reality; integrity risk.",
         "opts": [
-            ("Crush rebellion swiftly; reassert order.", "I"),
-            ("Offer amnesty if they join Ming patrols.", "C"),
-            ("Hear grievances through local councils.", "R"),
-            ("Redesign levies with shared governance.", "T"),
+            ("Restate what counts as 'green' under the taxonomy; draw the line.", "I"),
+            ("Create an ESG validation checklist linking Sustainability/Risk/Marketing.", "C"),
+            ("Reflect: where is aspiration vs deception? Capture learning.", "R"),
+            ("Redesign products with measurable ESG criteria and reporting.", "T"),
         ],
     },
     {
-        "k": "s12", "icon": "👑",
-        "title": "The King of Ceylon",
-        "blurb": "A defiant ruler after an envoy incident; the world watches your next move.",
+        "key": "s10",
+        "title": "Leadership Succession — Legacy vs Governance",
+        "context": "CEO wants protégé as successor; board favours external candidate.",
+        "why": "Power, loyalty, trust in process.",
         "opts": [
-            ("Seize the capital to assert order.", "I"),
-            ("Negotiate tribute exchange and release.", "C"),
-            ("Invite monks to mediate reconciliation.", "R"),
-            ("Propose alliance of shared routes and learning.", "T"),
-        ],
-    },
-
-    # LENS 4 — Ideological & Value
-    {
-        "k": "s13", "icon": "📚",
-        "title": "Confucian vs Maritime Values",
-        "blurb": "Scholars warn that overseas trade corrupts virtue; sailors argue prosperity sustains the realm.",
-        "opts": [
-            ("Uphold restraint; minimise foreign entanglements.", "I"),
-            ("Frame trade as benevolence in action (利以義行).", "C"),
-            ("Host debates on ethics of maritime expansion.", "R"),
-            ("Redefine virtue as outward benevolence (以德服人).", "T"),
+            ("Clarify decision rights (board vs CEO inputs); publish the process.", "I"),
+            ("Set transparent criteria and a structured assessment flow.", "C"),
+            ("Host a facilitated reflection on legacy, identity, and the future state.", "R"),
+            ("Design a co-transition: mentoring plan + integration roadmap.", "T"),
         ],
     },
     {
-        "k": "s14", "icon": "🧘",
-        "title": "Buddhist Monks on Board (Storm)",
-        "blurb": "A storm shakes morale; monks chant prayers for safety. Ritual vs routine?",
+        "key": "s11",
+        "title": "Sustainability Trade-off — Green Goals vs Growth",
+        "context": "Net-zero pledge meets a profitable project (data-centre expansion) that raises near-term emissions.",
+        "why": "Purpose, profit, and credibility collide.",
         "opts": [
-            ("Permit prayer but keep ritual minimal.", "I"),
-            ("Integrate brief prayer times into ship routine.", "C"),
-            ("Reflect on faith’s role in courage with crew.", "R"),
-            ("Assign a Harmony Officer for moral well-being.", "T"),
+            ("Re-articulate the sustainability boundary: taxonomy, thresholds, red lines.", "I"),
+            ("Co-create a decision playbook with Finance/Risk/Sustainability.", "C"),
+            ("Host a conscience dialogue: 'What message do we send?'", "R"),
+            ("Propose profit × carbon-intensity metrics; pilot sustainability-linked financing.", "T"),
         ],
     },
     {
-        "k": "s15", "icon": "🛡️",
-        "title": "The Eunuch’s Dilemma",
-        "blurb": "Some officers question loyalty to an eunuch commander (you). How do you proceed?",
+        "key": "s12",
+        "title": "Public Failure — Viral Outage",
+        "context": "A payroll glitch delays salaries; social media erupts; PR wants silence; customers want honesty.",
+        "why": "Legal caution vs moral accountability; speed vs accuracy.",
         "opts": [
-            ("Assert imperial mandate directly.", "I"),
-            ("Clarify chain of command via imperial edict.", "C"),
-            ("Discuss prejudice privately; listen and address concerns.", "R"),
-            ("Mentor promising critics into allies.", "T"),
-        ],
-    },
-    {
-        "k": "s16", "icon": "🕯️",
-        "title": "The Final Voyage (1433)",
-        "blurb": "Ageing, you must train successors. What legacy do you leave?",
-        "opts": [
-            ("Appoint your most loyal subordinate.", "I"),
-            ("Build a captains’ council to govern jointly.", "C"),
-            ("Lead a fleet-wide reflection on lessons and ethos.", "R"),
-            ("Empower next generation to define a new mission.", "T"),
+            ("Define truth boundaries: what can be shared when.", "I"),
+            ("Form a Legal-PR-Ops war-room with joint response SOP.", "C"),
+            ("Reflect internally on fear, blame, and public trust.", "R"),
+            ("Publish a transparent disclosure template and follow through.", "T"),
         ],
     },
 ]
 
-# ------------ State -------------
-if "order" not in st.session_state:
-    st.session_state.order = list(range(len(SCENARIOS)))
-    random.shuffle(st.session_state.order)
-    st.session_state.page = 0
-    # Pre-fill answers dict with None so Back/Next stays stable
-    st.session_state.answers = {idx: None for idx in range(len(SCENARIOS))}
+# ------------------------------------------------------------
+# Archetypes (SG-flavoured) and stretch guidance
+# ------------------------------------------------------------
+ARCHETYPES = {
+    "IT": ("🧩 Lego Synthesiser", "You integrate old and new wisely, re-assembling pieces into better forms."),
+    "IC": ("🎫 EZ-Link Navigator", "You read systems quickly and help people move through rules and structures."),
+    "CR": ("🧂 Condiment Connector", "You blend people and process; things go smoother when you’re around."),
+    "RT": ("🥫 Milo Tin Transformer", "You learn fast and repurpose experience into creative new practice."),
+    "IR": ("🪞 Kopitiam Mirror", "You surface assumptions and help others see clearly — with care and humour."),
+    "CT": ("🧰 Swiss Knife Collaborator", "You make innovation operational — bridging ideas into routines."),
+    "ALL": ("🌀 Boundary Alchemist", "You flex across all four mechanisms and catalyse learning in others."),
+    "LOW": ("🪑 The Settler", "You stabilise the space; with gentle stretch you’ll expand your range."),
+}
 
-TOTAL = len(SCENARIOS)
+MICRO_PRACTICES = {
+    "I": "Before the next project, write a one-page 'boundary brief': purpose, roles, red lines, and decision rights.",
+    "C": "Create one simple boundary object this month (shared checklist, glossary, or ritual) that others can re-use.",
+    "R": "Run a 20-min 'sense-making huddle' after a meeting: What surprised us? What assumptions were exposed?",
+    "T": "Prototype a small hybrid change; embed it as a repeatable routine if it works.",
+}
 
-# ------------ Helpers ----------
-def show_scenario(idx: int):
-    sc = SCENARIOS[idx]
-    st.markdown(f"### {sc['icon']} {sc['title']}")
-    st.write(sc["blurb"])
+# ------------------------------------------------------------
+# Helper functions
+# ------------------------------------------------------------
+def init_state():
+    if "order" not in st.session_state:
+        st.session_state.order = list(range(len(SCENARIOS)))
+        random.shuffle(st.session_state.order)
+    if "page" not in st.session_state:
+        st.session_state.page = 0
+    if "answers" not in st.session_state:
+        st.session_state.answers = {i: None for i in range(len(SCENARIOS))}
 
-    # Restore previous choice if exists
-    prev = st.session_state.answers.get(idx, None)
-    options = [o for (o, m) in sc["opts"]]
-    default_index = options.index(prev) if prev in options else None
-
-    choice = st.radio(
-        "Your decision:",
-        options,
-        index=default_index,
-        label_visibility="collapsed",
-        key=f"radio_{idx}"
-    )
-
-    col1, col2 = st.columns(2)
-    with col1:
-        disabled_back = st.session_state.page <= 0
-        if st.button("◀ Back", disabled=disabled_back, use_container_width=True):
-            st.session_state.page -= 1
-            st.experimental_rerun()
-    with col2:
-        if st.button("Next ▶", use_container_width=True):
-            if choice is None:
-                st.warning("Please choose an option to continue.")
-            else:
-                st.session_state.answers[idx] = choice
-                st.session_state.page += 1
-                st.experimental_rerun()
-
-def compute_scores():
+def score_mechanisms():
     scores = {"I": 0, "C": 0, "R": 0, "T": 0}
     for i, ans in st.session_state.answers.items():
         if ans is None:
             continue
-        for (o, m) in SCENARIOS[i]["opts"]:
-            if o == ans:
-                scores[m] += 1
+        for (label, mech) in SCENARIOS[i]["opts"]:
+            if ans == label:
+                scores[mech] += 1
                 break
     return scores
 
-def archetype_from(scores):
-    items = sorted(scores.items(), key=lambda x: x[1], reverse=True)
-    primary, second = items[0][0], items[1][0]
-    spread = items[0][1] - items[-1][1]
+def pick_archetype(scores):
+    vals = list(scores.values())
+    spread = max(vals) - min(vals)
     if spread <= 1:
-        # balanced → coalition leadership vibe
-        return "DN"
-
-    # 8 archetypes: 4 pure + 4 hybrids (IC, IR, CR, CT) + balanced mapped to DN
-    pair = primary + second
+        return "ALL"  # Boundary Alchemist — balanced profile
+    ordered = sorted(scores.items(), key=lambda x: x[1], reverse=True)
+    primary, secondary = ordered[0][0], ordered[1][0]
+    pair = primary + secondary
+    # Map to SG-flavoured duo types
     mapping = {
-        "IC": "SN", "IR": "ICa", "CR": "DN", "CT": "BI",
-        "I": "BM", "C": "BAc", "R": "RH", "T": "EC"
+        "IT": "IT",
+        "IC": "IC",
+        "CR": "CR",
+        "RT": "RT",
+        "IR": "IR",
+        "CT": "CT",
+        # fallbacks to the primary mechanism in case of ties that don’t match pairs
+        "I": "IR",  # Mirror as a reflective I
+        "C": "CT",  # Swiss Knife as operational C
+        "R": "RT",  # Milo Tin as transformative R
+        "T": "IT",  # Lego Synth as integrative T
     }
-    return mapping.get(pair, mapping[primary])
+    if pair in mapping:
+        return mapping[pair]
+    return mapping.get(primary, "ALL")
 
-ARCH = {
-    "BM": ("🗺 Boundary Mapper", "You clarify identity, language, and expectations; others rely on your steadiness."),
-    "BAc": ("🔗 Bridge Architect", "You connect people and systems through routines and shared tools."),
-    "RH": ("🪞 Reflective Helmsman", "You lead through empathy and sense-making; you turn tension into insight."),
-    "EC": ("🌾 Ecosystem Catalyst", "You integrate worlds and prototype new practices that stick."),
-    "SN": ("🧭 System Navigator", "You align strategy, people, and process; you bring order from complexity."),
-    "ICa": ("🧩 Insight Cartographer", "You map human and cultural nuances into shared understanding."),
-    "DN": ("🪞➡️🔗 Diplomatic Navigator", "You balance empathy with structure; trusted in cross-team coalitions."),
-    "BI": ("🛠 Bridge Innovator", "You turn promising ideas into systems that scale without chaos."),
-}
+def underused(scores):
+    # Return mechanisms sorted by ascending score (lowest first)
+    return sorted(scores.items(), key=lambda x: x[1])[:2]
 
 def bar_chart(scores):
-    # Simple, clear horizontal bar chart of the four markers
     cats = ["Identification (I)", "Coordination (C)", "Reflection (R)", "Transformation (T)"]
     vals = [scores["I"], scores["C"], scores["R"], scores["T"]]
     fig = go.Figure(go.Bar(
         x=vals, y=cats, orientation="h",
-        marker=dict(line=dict(width=0.5, color="#333"))
+        marker=dict(color=["#2471A3", "#17A589", "#F1C40F", "#8E44AD"])
     ))
-    fig.update_layout(
-        margin=dict(l=10, r=10, t=10, b=10),
-        xaxis_title="Selections", yaxis_title="Mechanisms",
-        height=320
-    )
+    fig.update_layout(height=320, margin=dict(l=10, r=10, t=10, b=10),
+                      xaxis_title="Selections", yaxis_title="")
     return fig
 
-def show_results():
-    st.success("🌊 Voyage complete!")
-    scores = compute_scores()
+def scenario_ui(index):
+    sc = SCENARIOS[index]
+    st.markdown(f"### {sc['title']}")
+    st.caption(sc["context"])
+    with st.expander("Why this is tricky", expanded=False):
+        st.write(sc["why"])
+    options = [label for (label, _m) in sc["opts"]]
+    prev = st.session_state.answers.get(index, None)
+    default = options.index(prev) if prev in options else None
+    choice = st.radio("What would you most likely do?", options, index=default, label_visibility="collapsed", key=f"q_{index}")
+    cols = st.columns(2)
+    back = cols[0].button("◀ Back", disabled=(st.session_state.page == 0), use_container_width=True, key=f"b_{index}")
+    nxt  = cols[1].button("Next ▶", use_container_width=True, key=f"n_{index}")
 
-    # Four big markers first
-    c1, c2, c3, c4 = st.columns(4)
-    c1.metric("I", scores["I"])
-    c2.metric("C", scores["C"])
-    c3.metric("R", scores["R"])
-    c4.metric("T", scores["T"])
+    if back:
+        st.session_state.page -= 1
+        st.experimental_rerun()
+    if nxt:
+        if choice is None:
+            st.warning("Please choose an option to continue.")
+        else:
+            st.session_state.answers[index] = choice
+            st.session_state.page += 1
+            st.experimental_rerun()
 
-    # Clear horizontal bar chart (no compass/radar)
+def results_ui():
+    scores = score_mechanisms()
+    st.success("🌊 You’ve completed your Boundary Compass journey.")
+    m1, m2, m3, m4 = st.columns(4)
+    m1.metric("I", scores["I"]); m2.metric("C", scores["C"]); m3.metric("R", scores["R"]); m4.metric("T", scores["T"])
     st.plotly_chart(bar_chart(scores), use_container_width=True)
 
-    code = archetype_from(scores)
-    name, desc = ARCH[code]
-    st.header(name)
+    code = pick_archetype(scores)
+    name, desc = ARCHETYPES[code]
+    st.markdown(f"## {name}")
     st.write(desc)
-    st.markdown("> **Reflection prompt:** Which boundary could become a site of learning in your current context — and what will you do next?")
 
-# ------------ Flow -------------
-if "page" not in st.session_state:
-    st.session_state.page = 0
+    # Strength narrative
+    ordered = sorted(scores.items(), key=lambda x: x[1], reverse=True)
+    dom = [ordered[0][0], ordered[1][0]]
+    dom_text = " and ".join({"I":"Identification","C":"Coordination","R":"Reflection","T":"Transformation"}[d] for d in dom)
+    st.markdown(f"**Your current pattern:** You tend to begin boundary work through *{dom_text}*.")
 
-st.progress(st.session_state.page / TOTAL)
+    # Stretch narrative
+    low_two = underused(scores)
+    st.markdown("**Your next edge:**")
+    for mech, _val in low_two:
+        label = {"I":"Identification","C":"Coordination","R":"Reflection","T":"Transformation"}[mech]
+        st.write(f"- *{label}*: {MICRO_PRACTICES[mech]}")
 
-if st.session_state.page < TOTAL:
+    st.divider()
+    st.caption(FOOTER)
+
+# ------------------------------------------------------------
+# App flow
+# ------------------------------------------------------------
+init_state()
+
+st.title(TITLE)
+st.caption(SUB)
+
+with st.expander("What is this about?", expanded=False):
+    st.markdown(INTRO)
+
+progress = st.session_state.page / len(SCENARIOS)
+st.progress(progress)
+
+if st.session_state.page < len(SCENARIOS):
     idx = st.session_state.order[st.session_state.page]
-    show_scenario(idx)
+    scenario_ui(idx)
 else:
-    show_results()
+    results_ui()
