@@ -1,9 +1,10 @@
-# Voyage of Discovery: Boundary-Crossing Diagnostic (Streamlit)
+# Voyage of Discovery — Leadership Through Boundary Crossing Lens (Streamlit)
 
-A 5-scenario, 4-option simulation grounded in **Akkerman & Bakker (2011)**:
-Identification · Coordination · Reflection · Transformation.
+A 16-scenario cinematic simulation set in the Ming dynasty under Admiral Zheng He.  
+It reveals how you lead across boundaries using Akkerman & Bakker’s mechanisms:  
+**Identification · Coordination · Reflection · Transformation**
 
-## Run locally
+## 🧭 Run locally
 ```bash
 python -m venv .venv
 # macOS/Linux
