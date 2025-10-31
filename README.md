@@ -1,19 +1,22 @@
-# 🎈 Blank app template
+# Boundary-Crossing Leadership Survey (Streamlit)
 
-A simple Streamlit app template for you to modify!
+A 20-item self-assessment grounded in **Akkerman & Bakker’s (2011)** framework:
+Identification · Coordination · Reflection · Transformation.
 
-[![Open in Streamlit](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://blank-app-template.streamlit.app/)
+It calculates mechanism scores, plots a radar chart, and maps you to one of six
+**Boundary-Crossing Leadership Archetypes**:
+🗺 Boundary Mapper · 🔗 Bridge Architect · 🪞 Reflective Sense-Maker · 🌾 Ecosystem Catalyst · 🧭 System Navigator · 🕸 Integrative Weaver
 
-### How to run it on your own machine
+---
 
-1. Install the requirements
+## 🚀 How to Run Locally
+```bash
+# 1. Create virtual environment
+python -m venv .venv
+source .venv/bin/activate   # Windows: .venv\Scripts\activate
 
-   ```
-   $ pip install -r requirements.txt
-   ```
+# 2. Install packages
+pip install -r requirements.txt
 
-2. Run the app
-
-   ```
-   $ streamlit run streamlit_app.py
-   ```
+# 3. Run Streamlit app
+streamlit run app.py
