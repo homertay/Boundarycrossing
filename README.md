@@ -1,6 +1,6 @@
-# Voyage of Discovery — Leadership Through Boundary Crossing Lens (Streamlit)
+# Voyage of Discovery — Leadership Through Boundary Crossing Mechanisms 
 
-A 16-scenario cinematic simulation set in the Ming dynasty under Admiral Zheng He.  
+A scenario-based simulation set in the workplace settings.  
 It reveals how you lead across boundaries using Akkerman & Bakker’s mechanisms:  
 **Identification · Coordination · Reflection · Transformation**
 
