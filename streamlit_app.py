@@ -10,21 +10,21 @@ st.caption("A 16-scenario, story-driven diagnostic grounded in Akkerman & Bakker
 with st.expander("What this measures (theory → practice)", expanded=False):
     st.markdown("""
 **Boundary-Crossing Mechanisms (Akkerman & Bakker, 2011)**  
-- **Identification (I)** — seeing differences clearly; naming roles, goals, limits.  
-- **Coordination (C)** — building bridges via shared routines, artefacts, agreements.  
-- **Reflection (R)** — learning through perspective-taking and sense-making.  
-- **Transformation (T)** — co-creating new practices that integrate worlds.  
+- **Identification (I)** — seeing differences clearly; naming roles, goals, limits  
+- **Coordination (C)** — building bridges: routines, artefacts, agreements  
+- **Reflection (R)** — learning via perspective-taking and sense-making  
+- **Transformation (T)** — co-creating new practices that integrate worlds  
 
 Leaders develop organisations not by eliminating boundaries, but by **strengthening capacity to work across them**.
 """)
 
 # ---------------- Scenarios (16) ----------------
+# Each scenario has 4 options, each mapped to I/C/R/T
 SCENARIOS = [
     # LENS 1 — Bureaucratic & Hierarchical
     {
-        "k": "s1",
+        "k": "s1", "icon": "🏯",
         "title": "The Emperor’s Commission (Nanjing, 1405)",
-        "img": "https://images.unsplash.com/photo-1500534314209-a25ddb2bd429?w=1600&q=80&auto=format&fit=crop",
         "blurb": "The Yongle Emperor orders the first great voyage. You must balance ambition and realism in your plan.",
         "opts": [
             ("Present exact logistics and constraints to set expectations.", "I"),
@@ -34,9 +34,8 @@ SCENARIOS = [
         ],
     },
     {
-        "k": "s2",
+        "k": "s2", "icon": "📜",
         "title": "The Court’s Doubt (Beijing)",
-        "img": "https://images.unsplash.com/photo-1520975916090-3105956dac38?w=1600&q=80&auto=format&fit=crop",
         "blurb": "Confucian officials criticise the cost of expeditions. Your response will shape political support.",
         "opts": [
             ("Reiterate loyalty to imperial will; obey and proceed.", "I"),
@@ -46,9 +45,8 @@ SCENARIOS = [
         ],
     },
     {
-        "k": "s3",
+        "k": "s3", "icon": "🧭",
         "title": "Chain of Command (Yard of Nanjing)",
-        "img": "https://images.unsplash.com/photo-1495197359483-d092478c170a?w=1600&q=80&auto=format&fit=crop",
         "blurb": "Captains below you compete for status and access. Cohesion is fraying.",
         "opts": [
             ("Reassert hierarchy and expected conduct.", "I"),
@@ -58,9 +56,8 @@ SCENARIOS = [
         ],
     },
     {
-        "k": "s4",
+        "k": "s4", "icon": "🌩️",
         "title": "Lessons from Failure (Storm Report)",
-        "img": "https://images.unsplash.com/photo-1505839673365-e3971f8d9184?w=1600&q=80&auto=format&fit=crop",
         "blurb": "A storm destroys several supply ships. The Emperor awaits your account.",
         "opts": [
             ("Attribute losses to fate and natural hazard.", "I"),
@@ -72,9 +69,8 @@ SCENARIOS = [
 
     # LENS 2 — Functional & Technical
     {
-        "k": "s5",
+        "k": "s5", "icon": "⚓",
         "title": "The Shipwrights’ Dispute (Fujian vs Nanjing)",
-        "img": "https://images.unsplash.com/photo-1482192596544-9eb780fc7f66?w=1600&q=80&auto=format&fit=crop",
         "blurb": "Artisans argue over hull design: proven stability vs speed and cargo efficiency.",
         "opts": [
             ("Choose one proven design for consistency.", "I"),
@@ -84,9 +80,8 @@ SCENARIOS = [
         ],
     },
     {
-        "k": "s6",
+        "k": "s6", "icon": "✨",
         "title": "Stars or Compass (Navigation Doctrine)",
-        "img": "https://images.unsplash.com/photo-1482192505345-5655af888cc4?w=1600&q=80&auto=format&fit=crop",
         "blurb": "Veterans trust stars; younger crews back the magnetic compass. Doctrine is divided.",
         "opts": [
             ("Keep methods separate; assign by crew preference.", "I"),
@@ -96,9 +91,8 @@ SCENARIOS = [
         ],
     },
     {
-        "k": "s7",
+        "k": "s7", "icon": "🥖",
         "title": "Supply Shortage in Calicut",
-        "img": "https://images.unsplash.com/photo-1474511320723-9a56873867b5?w=1600&q=80&auto=format&fit=crop",
         "blurb": "Merchants hoard grain; engineers warn of rationing. Morale could decay.",
         "opts": [
             ("Impose quota by rank; protect chain of command.", "I"),
@@ -108,9 +102,8 @@ SCENARIOS = [
         ],
     },
     {
-        "k": "s8",
+        "k": "s8", "icon": "🔔",
         "title": "The Bronze Bell Problem",
-        "img": "https://images.unsplash.com/photo-1500534623283-312aade485b7?w=1600&q=80&auto=format&fit=crop",
         "blurb": "Ritual purity vs practical signaling: bell makers vs sailors.",
         "opts": [
             ("Respect ritual specification as is.", "I"),
@@ -122,9 +115,8 @@ SCENARIOS = [
 
     # LENS 3 — Cultural & Diplomatic
     {
-        "k": "s9",
+        "k": "s9", "icon": "🤝",
         "title": "Envoys of Malacca",
-        "img": "https://images.unsplash.com/photo-1519681393784-d120267933ba?w=1600&q=80&auto=format&fit=crop",
         "blurb": "The Sultan requests protection from Siam; the straits are strategic.",
         "opts": [
             ("Issue a decree asserting Ming protection.", "I"),
@@ -134,9 +126,8 @@ SCENARIOS = [
         ],
     },
     {
-        "k": "s10",
+        "k": "s10", "icon": "🦒",
         "title": "The Giraffe from Malindi",
-        "img": "https://images.unsplash.com/photo-1533113354690-2099c8242f24?w=1600&q=80&auto=format&fit=crop",
         "blurb": "A giraffe arrives as a wonder-gift from Africa. How do you respond?",
         "opts": [
             ("Parade it as imperial tribute to Heaven’s favour.", "I"),
@@ -146,9 +137,8 @@ SCENARIOS = [
         ],
     },
     {
-        "k": "s11",
+        "k": "s11", "icon": "🏴‍☠️",
         "title": "Pirates or Patriots (Sumatra)",
-        "img": "https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?w=1600&q=80&auto=format&fit=crop",
         "blurb": "Local ‘pirates’ claim to defend native merchants from taxes.",
         "opts": [
             ("Crush rebellion swiftly; reassert order.", "I"),
@@ -158,9 +148,8 @@ SCENARIOS = [
         ],
     },
     {
-        "k": "s12",
+        "k": "s12", "icon": "👑",
         "title": "The King of Ceylon",
-        "img": "https://images.unsplash.com/photo-1476610182048-b716b8518aae?w=1600&q=80&auto=format&fit=crop",
         "blurb": "A defiant ruler after an envoy incident; the world watches your next move.",
         "opts": [
             ("Seize the capital to assert order.", "I"),
@@ -172,9 +161,8 @@ SCENARIOS = [
 
     # LENS 4 — Ideological & Value
     {
-        "k": "s13",
+        "k": "s13", "icon": "📚",
         "title": "Confucian vs Maritime Values",
-        "img": "https://images.unsplash.com/photo-1500534668822-8b9510587c7b?w=1600&q=80&auto=format&fit=crop",
         "blurb": "Scholars warn that overseas trade corrupts virtue; sailors argue prosperity sustains the realm.",
         "opts": [
             ("Uphold restraint; minimise foreign entanglements.", "I"),
@@ -184,9 +172,8 @@ SCENARIOS = [
         ],
     },
     {
-        "k": "s14",
+        "k": "s14", "icon": "🧘",
         "title": "Buddhist Monks on Board (Storm)",
-        "img": "https://images.unsplash.com/photo-1481349518771-20055b2a7b24?w=1600&q=80&auto=format&fit=crop",
         "blurb": "A storm shakes morale; monks chant prayers for safety. Ritual vs routine?",
         "opts": [
             ("Permit prayer but keep ritual minimal.", "I"),
@@ -196,9 +183,8 @@ SCENARIOS = [
         ],
     },
     {
-        "k": "s15",
+        "k": "s15", "icon": "🛡️",
         "title": "The Eunuch’s Dilemma",
-        "img": "https://images.unsplash.com/photo-1494438639946-1ebd1d20bf85?w=1600&q=80&auto=format&fit=crop",
         "blurb": "Some officers question loyalty to an eunuch commander (you). How do you proceed?",
         "opts": [
             ("Assert imperial mandate directly.", "I"),
@@ -208,9 +194,8 @@ SCENARIOS = [
         ],
     },
     {
-        "k": "s16",
+        "k": "s16", "icon": "🕯️",
         "title": "The Final Voyage (1433)",
-        "img": "https://images.unsplash.com/photo-1529156069898-49953e39b3ac?w=1600&q=80&auto=format&fit=crop",
         "blurb": "Ageing, you must train successors. What legacy do you leave?",
         "opts": [
             ("Appoint your most loyal subordinate.", "I"),
@@ -226,24 +211,38 @@ if "order" not in st.session_state:
     st.session_state.order = list(range(len(SCENARIOS)))
     random.shuffle(st.session_state.order)
     st.session_state.page = 0
-    st.session_state.answers = {}
+    # Pre-fill answers dict with None so Back/Next stays stable
+    st.session_state.answers = {idx: None for idx in range(len(SCENARIOS))}
 
 TOTAL = len(SCENARIOS)
 
-# ------------ Functions ----------
-def show_scenario(idx):
+# ------------ Helpers ----------
+def show_scenario(idx: int):
     sc = SCENARIOS[idx]
-    st.image(sc["img"], use_column_width=True, caption=sc["title"])
-    st.markdown(f"### {sc['title']}")
+    st.markdown(f"### {sc['icon']} {sc['title']}")
     st.write(sc["blurb"])
-    choice = st.radio("Your decision:", [o for (o, m) in sc["opts"]], index=None, label_visibility="collapsed", key=f"r_{idx}")
+
+    # Restore previous choice if exists
+    prev = st.session_state.answers.get(idx, None)
+    options = [o for (o, m) in sc["opts"]]
+    default_index = options.index(prev) if prev in options else None
+
+    choice = st.radio(
+        "Your decision:",
+        options,
+        index=default_index,
+        label_visibility="collapsed",
+        key=f"radio_{idx}"
+    )
+
     col1, col2 = st.columns(2)
     with col1:
-        if st.session_state.page > 0 and st.button("◀ Back"):
+        disabled_back = st.session_state.page <= 0
+        if st.button("◀ Back", disabled=disabled_back, use_container_width=True):
             st.session_state.page -= 1
             st.experimental_rerun()
     with col2:
-        if st.button("Next ▶"):
+        if st.button("Next ▶", use_container_width=True):
             if choice is None:
                 st.warning("Please choose an option to continue.")
             else:
@@ -252,60 +251,84 @@ def show_scenario(idx):
                 st.experimental_rerun()
 
 def compute_scores():
-    scores = {"I":0,"C":0,"R":0,"T":0}
+    scores = {"I": 0, "C": 0, "R": 0, "T": 0}
     for i, ans in st.session_state.answers.items():
-        for (o,m) in SCENARIOS[i]["opts"]:
+        if ans is None:
+            continue
+        for (o, m) in SCENARIOS[i]["opts"]:
             if o == ans:
                 scores[m] += 1
+                break
     return scores
-
-def boundary_compass(scores):
-    x = scores["T"] - scores["C"]
-    y = scores["R"] - scores["I"]
-    fig = go.Figure()
-    fig.add_shape(type="line", x0=-8, x1=8, y0=0, y1=0, line=dict(color="#999"))
-    fig.add_shape(type="line", x0=0, x1=0, y0=-8, y1=8, line=dict(color="#999"))
-    fig.add_trace(go.Scatter(x=[x], y=[y], mode="markers", marker=dict(size=14), name="You"))
-    fig.update_layout(
-        xaxis=dict(title="Structure ←  C   |   T  → Emergence", range=[-8,8]),
-        yaxis=dict(title="Self/Role ←  I   |   R  → Other/System", range=[-8,8]),
-        showlegend=False, height=420)
-    return fig
-
-ARCH = {
-    "BM": ("🗺 Boundary Mapper","You clarify identity, language, and expectations; others rely on your steadiness."),
-    "BAc": ("🔗 Bridge Architect","You connect people and systems through routines and shared tools."),
-    "RH": ("🪞 Reflective Helmsman","You lead through empathy and sense-making; you turn tension into insight."),
-    "EC": ("🌾 Ecosystem Catalyst","You integrate worlds and prototype new practices that stick."),
-    "SN": ("🧭 System Navigator","You align strategy, people, and process; you bring order from complexity."),
-    "ICa": ("🧩 Insight Cartographer","You map human and cultural nuances into shared understanding."),
-    "DN": ("🪞➡️🔗 Diplomatic Navigator","You balance empathy with structure; trusted in cross-team coalitions."),
-    "BI": ("🛠 Bridge Innovator","You turn promising ideas into systems that scale without chaos."),
-}
 
 def archetype_from(scores):
     items = sorted(scores.items(), key=lambda x: x[1], reverse=True)
-    primary, secondary = items[0][0], items[1][0]
-    spread = items[0][1]-items[-1][1]
+    primary, second = items[0][0], items[1][0]
+    spread = items[0][1] - items[-1][1]
     if spread <= 1:
+        # balanced → coalition leadership vibe
         return "DN"
-    pair = primary+secondary
-    mapping = {"IC":"SN","IR":"ICa","CR":"DN","CT":"BI","RT":"EC","IT":"SN"}
-    return mapping.get(pair, {"I":"BM","C":"BAc","R":"RH","T":"EC"}[primary])
+
+    # 8 archetypes: 4 pure + 4 hybrids (IC, IR, CR, CT) + balanced mapped to DN
+    pair = primary + second
+    mapping = {
+        "IC": "SN", "IR": "ICa", "CR": "DN", "CT": "BI",
+        "I": "BM", "C": "BAc", "R": "RH", "T": "EC"
+    }
+    return mapping.get(pair, mapping[primary])
+
+ARCH = {
+    "BM": ("🗺 Boundary Mapper", "You clarify identity, language, and expectations; others rely on your steadiness."),
+    "BAc": ("🔗 Bridge Architect", "You connect people and systems through routines and shared tools."),
+    "RH": ("🪞 Reflective Helmsman", "You lead through empathy and sense-making; you turn tension into insight."),
+    "EC": ("🌾 Ecosystem Catalyst", "You integrate worlds and prototype new practices that stick."),
+    "SN": ("🧭 System Navigator", "You align strategy, people, and process; you bring order from complexity."),
+    "ICa": ("🧩 Insight Cartographer", "You map human and cultural nuances into shared understanding."),
+    "DN": ("🪞➡️🔗 Diplomatic Navigator", "You balance empathy with structure; trusted in cross-team coalitions."),
+    "BI": ("🛠 Bridge Innovator", "You turn promising ideas into systems that scale without chaos."),
+}
+
+def bar_chart(scores):
+    # Simple, clear horizontal bar chart of the four markers
+    cats = ["Identification (I)", "Coordination (C)", "Reflection (R)", "Transformation (T)"]
+    vals = [scores["I"], scores["C"], scores["R"], scores["T"]]
+    fig = go.Figure(go.Bar(
+        x=vals, y=cats, orientation="h",
+        marker=dict(line=dict(width=0.5, color="#333"))
+    ))
+    fig.update_layout(
+        margin=dict(l=10, r=10, t=10, b=10),
+        xaxis_title="Selections", yaxis_title="Mechanisms",
+        height=320
+    )
+    return fig
 
 def show_results():
     st.success("🌊 Voyage complete!")
     scores = compute_scores()
-    st.write("#### Your boundary crossings summary")
-    st.plotly_chart(boundary_compass(scores), use_container_width=True)
+
+    # Four big markers first
+    c1, c2, c3, c4 = st.columns(4)
+    c1.metric("I", scores["I"])
+    c2.metric("C", scores["C"])
+    c3.metric("R", scores["R"])
+    c4.metric("T", scores["T"])
+
+    # Clear horizontal bar chart (no compass/radar)
+    st.plotly_chart(bar_chart(scores), use_container_width=True)
+
     code = archetype_from(scores)
     name, desc = ARCH[code]
     st.header(name)
     st.write(desc)
-    st.markdown("> **Reflection prompt:** Which boundaries in your own work today could become sites of learning and innovation?")
+    st.markdown("> **Reflection prompt:** Which boundary could become a site of learning in your current context — and what will you do next?")
 
 # ------------ Flow -------------
+if "page" not in st.session_state:
+    st.session_state.page = 0
+
 st.progress(st.session_state.page / TOTAL)
+
 if st.session_state.page < TOTAL:
     idx = st.session_state.order[st.session_state.page]
     show_scenario(idx)
