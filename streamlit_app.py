@@ -286,14 +286,14 @@ def scenario_ui(index):
 
     if back:
         st.session_state.page -= 1
-        st.experimental_rerun()
+        st.rerun()
     if nxt:
         if choice is None:
             st.warning("Please choose an option to continue.")
         else:
             st.session_state.answers[index] = choice
             st.session_state.page += 1
-            st.experimental_rerun()
+            st.rerun()
 
 def results_ui():
     scores = score_mechanisms()
