@@ -1,22 +1,15 @@
-# Boundary-Crossing Leadership Survey (Streamlit)
+# Voyage of Discovery: Boundary-Crossing Diagnostic (Streamlit)
 
-A 20-item self-assessment grounded in **Akkerman & Bakker’s (2011)** framework:
+A 5-scenario, 4-option simulation grounded in **Akkerman & Bakker (2011)**:
 Identification · Coordination · Reflection · Transformation.
 
-It calculates mechanism scores, plots a radar chart, and maps you to one of six
-**Boundary-Crossing Leadership Archetypes**:
-🗺 Boundary Mapper · 🔗 Bridge Architect · 🪞 Reflective Sense-Maker · 🌾 Ecosystem Catalyst · 🧭 System Navigator · 🕸 Integrative Weaver
-
----
-
-## 🚀 How to Run Locally
+## Run locally
 ```bash
-# 1. Create virtual environment
 python -m venv .venv
-source .venv/bin/activate   # Windows: .venv\Scripts\activate
+# macOS/Linux
+source .venv/bin/activate
+# Windows
+.venv\Scripts\activate
 
-# 2. Install packages
 pip install -r requirements.txt
-
-# 3. Run Streamlit app
 streamlit run app.py
