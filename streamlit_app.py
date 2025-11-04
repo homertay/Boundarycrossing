@@ -24,26 +24,25 @@ This game helps you notice your **preferred way of crossing boundaries**, based 
 - **Transformation (T)** — prototyping hybrid practices and embedding change
 
 Choose what you would **most likely** do in each situation.  
-At the end, you’ll see your **Boundary Compass** profile, an archetype, a **pictorial result card**, and stretch prompts.
+At the end, you’ll see your **Boundary Compass** profile, a pictorial result card, and concrete micro-practices to try next week.
 """
 
 FOOTER = "*Mechanisms adapted from boundary-crossing research (Akkerman & Bakker, 2011).*"
-
-IMAGES_DIR = "images"  # put your PNG/JPG here
+IMAGES_DIR = "images"  # optional banner images live here (s1.png ... s12.png)
 
 # ------------------------------------------------------------
-# 12 short, role-neutral Singapore workplace scenarios
-# Add an 'img' key for a banner image per scenario (optional)
+# Scenarios (12): short, role-neutral, SG/ASEAN workplace
+# Optional 'img' per scenario: images/sX.png (hide if missing)
 # ------------------------------------------------------------
 SCENARIOS = [
     {
         "key": "s1",
         "title": "The Idea That Lands Flat",
-        "context": "You share an idea in a meeting that you think could help. No one reacts. The silence is awkward.",
-        "why": "You could withdraw, push harder, or try a different way to engage. How do you respond?",
+        "context": "You share an idea in a meeting. No one reacts. The silence is awkward.",
+        "why": "You could withdraw, push harder, or try a different way to engage.",
         "img": f"{IMAGES_DIR}/s1.png",
         "opts": [
-            ("Clarify the problem you were trying to solve and restate your intent.", "I"),
+            ("Clarify the problem you were solving and restate your intent.", "I"),
             ("Ask for quick feedback or invite others to build on it together.", "C"),
             ("Pause and reflect: what might make others hesitant to respond?", "R"),
             ("Prototype your idea quietly and share results later.", "T"),
@@ -52,20 +51,20 @@ SCENARIOS = [
     {
         "key": "s2",
         "title": "The Overloaded Team",
-        "context": "Your team has been running on full capacity, and a new project drops in unexpectedly.",
-        "why": "People are tired, but the work matters. You have to decide how to move forward.",
+        "context": "Your team has been at full capacity; a new project lands unexpectedly.",
+        "why": "People are tired, but the work matters.",
         "img": f"{IMAGES_DIR}/s2.png",
         "opts": [
             ("Clarify what’s truly essential and what can wait.", "I"),
             ("Re-prioritise tasks together and agree on timelines.", "C"),
             ("Ask how everyone is coping and what support they need.", "R"),
-            ("Propose a new rhythm or workflow to make work more sustainable.", "T"),
+            ("Propose a new rhythm or workflow to make work sustainable.", "T"),
         ],
     },
     {
         "key": "s3",
         "title": "The Quiet Colleague",
-        "context": "A capable teammate rarely speaks up during discussions, even when you know they have good ideas.",
+        "context": "A capable teammate rarely speaks up, even when they have good ideas.",
         "why": "You sense a missed opportunity for learning and inclusion.",
         "img": f"{IMAGES_DIR}/s3.png",
         "opts": [
@@ -78,38 +77,38 @@ SCENARIOS = [
     {
         "key": "s4",
         "title": "The Missing Context",
-        "context": "You’re added to a project halfway through. Goals and decisions are unclear, but deadlines are close.",
+        "context": "You’re added to a project halfway through. Goals and decisions are unclear, deadlines are close.",
         "why": "You could act fast, or slow down to orient yourself.",
         "img": f"{IMAGES_DIR}/s4.png",
         "opts": [
             ("Ask for clarity on purpose, roles, and current status.", "I"),
             ("Set up a short sync to align everyone quickly.", "C"),
-            ("Observe for a bit to understand group patterns.", "R"),
-            ("Sketch a quick summary of what’s known and test it with the group.", "T"),
+            ("Observe for a bit to understand patterns and norms.", "R"),
+            ("Sketch a one-page summary of what's known; test it with the group.", "T"),
         ],
     },
     {
         "key": "s5",
         "title": "The Tech Shortcut",
         "context": "A new AI tool could save hours of manual work, but no one has tested it yet.",
-        "why": "You sense potential, but also the risk of wasting time if it fails.",
+        "why": "There’s potential and risk.",
         "img": f"{IMAGES_DIR}/s5.png",
         "opts": [
-            ("Clarify what success looks like before adopting the tool.", "I"),
-            ("Run a short trial with clear check-in points.", "C"),
+            ("Define success criteria and constraints before adopting.", "I"),
+            ("Run a one-week trial with check-in points.", "C"),
             ("Ask why people hesitate and what concerns they have.", "R"),
-            ("Test it on one process and share what you learn.", "T"),
+            ("Test on one process and share what you learn.", "T"),
         ],
     },
     {
         "key": "s6",
         "title": "The Feedback Moment",
-        "context": "A peer asks, “Be honest — how was my presentation?” You saw both strengths and gaps.",
-        "why": "It’s a chance to help, but you’re unsure how direct to be.",
+        "context": "A peer asks, “Be honest — how was my presentation?” You saw strengths and gaps.",
+        "why": "It’s a chance to help; tone matters.",
         "img": f"{IMAGES_DIR}/s6.png",
         "opts": [
-            ("Ask what kind of feedback they’d find most useful first.", "I"),
-            ("Use a simple framework to share both positives and improvements.", "C"),
+            ("Ask what kind of feedback they want and how detailed.", "I"),
+            ("Use a simple structure: 2 strengths, 2 improvements, 1 next step.", "C"),
             ("Reflect on why giving feedback feels tricky for you.", "R"),
             ("Offer to practise together before their next presentation.", "T"),
         ],
@@ -118,13 +117,13 @@ SCENARIOS = [
         "key": "s7",
         "title": "The Sticky Stakeholder",
         "context": "A senior stakeholder keeps changing direction. The team’s energy is fading.",
-        "why": "You could comply, challenge, or help the system make sense of itself.",
+        "why": "You could comply, challenge, or help the system make sense.",
         "img": f"{IMAGES_DIR}/s7.png",
         "opts": [
             ("Clarify expectations and what success means this round.", "I"),
             ("Summarise changes and confirm decisions in writing.", "C"),
-            ("Explore why priorities keep shifting — what pressures exist upstream?", "R"),
-            ("Co-create a shared decision tracker or playbook for future projects.", "T"),
+            ("Explore why priorities keep shifting — what’s upstream?", "R"),
+            ("Co-create a shared decision tracker/playbook for future projects.", "T"),
         ],
     },
     {
@@ -143,11 +142,11 @@ SCENARIOS = [
     {
         "key": "s9",
         "title": "The Team Debate",
-        "context": "Two teammates strongly disagree on an approach — one wants structure, the other prefers experimentation.",
-        "why": "Both have valid points. You’re caught in the middle.",
+        "context": "Two teammates disagree — one wants structure, the other experimentation.",
+        "why": "Both have valid points. You’re in the middle.",
         "img": f"{IMAGES_DIR}/s9.png",
         "opts": [
-            ("Clarify what problem we’re really solving before choosing.", "I"),
+            ("Clarify the problem we’re solving before choosing.", "I"),
             ("Agree on next steps: try one approach with review points.", "C"),
             ("Ask each to explain the principle behind their view.", "R"),
             ("Combine both ideas into a short pilot to test outcomes.", "T"),
@@ -156,14 +155,14 @@ SCENARIOS = [
     {
         "key": "s10",
         "title": "The Change Rollout",
-        "context": "A new policy launches and complaints flood in: “Another change again?”",
-        "why": "Change fatigue is real, but the change matters.",
+        "context": "A new policy launches and people groan: “Another change again?”",
+        "why": "Change fatigue is real; the change matters too.",
         "img": f"{IMAGES_DIR}/s10.png",
         "opts": [
             ("Clarify what the change fixes and what stays the same.", "I"),
-            ("Create a quick Q&A resource and feedback loop.", "C"),
+            ("Create a quick Q&A and feedback loop.", "C"),
             ("Ask what worries people most about new changes.", "R"),
-            ("Turn early feedback into tweaks that show responsiveness.", "T"),
+            ("Turn early feedback into small tweaks that show responsiveness.", "T"),
         ],
     },
     {
@@ -173,29 +172,29 @@ SCENARIOS = [
         "why": "Short-term targets clash with long-term commitments.",
         "img": f"{IMAGES_DIR}/s11.png",
         "opts": [
-            ("Define what 'sustainability' really means in this context.", "I"),
-            ("Bring Finance, Ops, and Sustainability together to review trade-offs.", "C"),
+            ("Define what 'sustainability' means here; agree on boundaries.", "I"),
+            ("Bring Finance, Ops, Sustainability together to review trade-offs.", "C"),
             ("Hold a dialogue on what 'responsible growth' means for the team.", "R"),
-            ("Pilot a lower-impact process and measure both cost and learning.", "T"),
+            ("Pilot a lower-impact process; measure cost and learning.", "T"),
         ],
     },
     {
         "key": "s12",
         "title": "The Small Win",
         "context": "The team just completed a tough sprint. Everyone rushes to the next task.",
-        "why": "Celebration feels like a luxury, but reflection builds capability.",
+        "why": "Celebration feels like a luxury; reflection builds capability.",
         "img": f"{IMAGES_DIR}/s12.png",
         "opts": [
             ("Acknowledge what went well and who made it happen.", "I"),
-            ("Create a five-minute retrospective at the next stand-up.", "C"),
+            ("Do a five-minute retro at the next stand-up.", "C"),
             ("Ask what surprised or challenged people most.", "R"),
-            ("Turn insights into a new team ritual for learning and gratitude.", "T"),
+            ("Turn insights into a new ritual for learning and gratitude.", "T"),
         ],
     },
 ]
 
 # ------------------------------------------------------------
-# Archetypes + tags/colours for pictorial card
+# Archetypes + tags/colours for result card
 # ------------------------------------------------------------
 ARCHETYPE_META = {
     "IT": {"name": "🧩 Lego Synthesiser",
@@ -219,17 +218,17 @@ ARCHETYPE_META = {
     "ALL": {"name": "🌀 Boundary Alchemist",
             "desc": "You flex across all four mechanisms and catalyse learning in others.",
             "color": (88, 101, 242), "tags": ["Balanced", "Catalytic", "Versatile"]},
-    "LOW": {"name": "🪑 The Settler",
-            "desc": "You stabilise the space; with gentle stretch you’ll expand your range.",
-            "color": (149, 165, 166), "tags": ["Grounding", "Dependable"]},
 }
 
+# Concrete, tangible micro-practices
 MICRO_PRACTICES = {
-    "I": "Before the next project, write a one-page 'boundary brief': purpose, roles, red lines, decision rights.",
-    "C": "Create one simple boundary object (checklist, glossary, or ritual) that others can re-use.",
-    "R": "Run a 20-minute sense-making huddle: What surprised us? What assumptions surfaced?",
-    "T": "Prototype one small hybrid change; embed it as a repeatable routine if it works.",
+    "I": "Run a 15-min 'kick-off clarity' chat before your next project. Capture purpose, roles, decision rights, and out-of-scope in a pinned doc.",
+    "C": "Create ONE shared artefact this week (checklist, status template or dashboard) that two functions agree to use.",
+    "R": "After a key meeting, host a 5-minute sense-making pause: 'What did we learn? What assumptions surfaced?' Capture 1 line per person.",
+    "T": "Pick one cross-team pain point and run a 1-week mini-experiment (new handover, short sync, or co-lead trial). If useful, bake it into process.",
 }
+
+MECH_COLORS = {"I": (36, 113, 163), "C": (23, 165, 137), "R": (241, 196, 15), "T": (142, 68, 173)}
 
 # ------------------------------------------------------------
 # State & helpers
@@ -246,8 +245,7 @@ def init_state():
 def score_mechanisms():
     scores = {"I": 0, "C": 0, "R": 0, "T": 0}
     for i, ans in st.session_state.answers.items():
-        if ans is None:
-            continue
+        if ans is None: continue
         for (label, mech) in SCENARIOS[i]["opts"]:
             if ans == label:
                 scores[mech] += 1
@@ -262,13 +260,9 @@ def pick_archetype(scores):
     ordered = sorted(scores.items(), key=lambda x: x[1], reverse=True)
     primary, secondary = ordered[0][0], ordered[1][0]
     pair = primary + secondary
-    mapping = {
-        "IT": "IT", "IC": "IC", "CR": "CR", "RT": "RT", "IR": "IR", "CT": "CT",
-        "I": "IR", "C": "CT", "R": "RT", "T": "IT"
-    }
-    if pair in mapping:
-        return mapping[pair]
-    return mapping.get(primary, "ALL")
+    mapping = {"IT":"IT","IC":"IC","CR":"CR","RT":"RT","IR":"IR","CT":"CT",
+               "I":"IR","C":"CT","R":"RT","T":"IT"}
+    return mapping.get(pair, mapping.get(primary, "ALL"))
 
 def underused(scores):
     return sorted(scores.items(), key=lambda x: x[1])[:2]
@@ -278,79 +272,90 @@ def bar_chart(scores):
     vals = [scores["I"], scores["C"], scores["R"], scores["T"]]
     fig = go.Figure(go.Bar(
         x=vals, y=cats, orientation="h",
-        marker=dict(color=["#2471A3", "#17A589", "#F1C40F", "#8E44AD"])
+        marker=dict(color=[MECH_COLORS["I"], MECH_COLORS["C"], MECH_COLORS["R"], MECH_COLORS["T"]])
     ))
     fig.update_layout(height=320, margin=dict(l=10, r=10, t=10, b=10),
                       xaxis_title="Selections", yaxis_title="")
     return fig
 
-def safe_load_image(path: str, width: int = 900):
+# ---------- Imaging helpers ----------
+def load_font(path, size):
+    try: return ImageFont.truetype(path, size)
+    except Exception: return ImageFont.load_default()
+
+def draw_rounded_rect(draw, xy, radius, fill):
+    draw.rounded_rectangle(xy, radius=radius, fill=fill)
+
+def draw_pill(draw, x, y, text, font, pad=16, fill=(50,50,50), txt=(255,255,255)):
+    w, h = draw.textbbox((0,0), text, font=font)[2:]
+    draw.rounded_rectangle([x, y, x + w + pad*2, y + h + pad], radius=999, fill=fill)
+    draw.text((x + pad, y + pad//2), text, font=font, fill=txt)
+
+def draw_bar(draw, x, y, label, value, maxval, width, height, fill, font):
+    draw.text((x, y), label, font=font, fill=(30,30,30))
+    by = y + 30
+    draw.rounded_rectangle([x, by, x + width, by + height], radius=height//2, fill=(230,230,230))
+    if maxval > 0:
+        vw = int(width * (value / maxval))
+        draw.rounded_rectangle([x, by, x + vw, by + height], radius=height//2, fill=fill)
+
+def safe_load_image(path: str, width: int = 960):
     try:
         if path and os.path.exists(path):
             img = Image.open(path).convert("RGB")
             w, h = img.size
             scale = width / float(w)
-            new_h = int(h * scale)
-            return img.resize((width, new_h), Image.LANCZOS)
+            return img.resize((width, int(h*scale)), Image.LANCZOS)
     except Exception:
         pass
     return None
 
-# ------------------------------------------------------------
-# Result card generator (Pillow)
-# ------------------------------------------------------------
+# ---------- Pictorial result card ----------
 def generate_result_card(archetype_code: str, scores: dict, width: int = 1080, height: int = 1440):
     meta = ARCHETYPE_META[archetype_code]
-    bg = Image.new("RGB", (width, height), color=meta["color"])
-    draw = ImageDraw.Draw(bg)
-
-    # Try to load a nicer font if present; fallback to default
-    try:
-        # place a TTF font in repo (e.g., NotoSans) and point to it here if you wish
-        font_big = ImageFont.truetype("NotoSans-Bold.ttf", 72)
-        font_mid = ImageFont.truetype("NotoSans-Bold.ttf", 44)
-        font_small = ImageFont.truetype("NotoSans-Regular.ttf", 36)
-    except Exception:
-        font_big = ImageFont.load_default()
-        font_mid = ImageFont.load_default()
-        font_small = ImageFont.load_default()
+    img = Image.new("RGB", (width, height), color=meta["color"])
+    draw = ImageDraw.Draw(img)
 
     pad = 60
-    # white panel
-    panel = Image.new("RGB", (width - pad*2, height - pad*2), color=(250, 250, 250))
-    bg.paste(panel, (pad, pad))
+    panel_xy = (pad, pad, width - pad, height - pad)
+    draw_rounded_rect(draw, panel_xy, radius=48, fill=(250,250,250))
 
-    # Title
-    title = f"You are… {meta['name']}"
-    draw.text((pad+40, pad+30), title, fill=(30, 30, 30), font=font_big)
+    title_f = load_font("NotoSans-Bold.ttf", 72)
+    h1_f    = load_font("NotoSans-Bold.ttf", 44)
+    body_f  = load_font("NotoSans-Regular.ttf", 34)
+    tag_f   = load_font("NotoSans-Bold.ttf", 30)
+    small_f = load_font("NotoSans-Regular.ttf", 28)
 
-    # Description
-    draw.text((pad+40, pad+140), meta["desc"], fill=(50, 50, 50), font=font_mid)
+    x = pad + 40
+    y = pad + 40
+    draw.text((x, y), f"You are… {meta['name']}", font=title_f, fill=(30,30,30))
+    y += 110
+    draw.text((x, y), meta["desc"], font=h1_f, fill=(65,65,65))
+    y += 100
 
-    # Tags
-    y = pad + 260
-    for tag in meta["tags"]:
-        pill = f"  {tag}  "
-        draw.text((pad+40, y), pill, fill=(255, 255, 255), font=font_small)
-        y += 56
+    # Tag pills
+    pill_x = x
+    for tag in meta.get("tags", []):
+        draw_pill(draw, pill_x, y, tag, tag_f, fill=(60,60,60))
+        pill_x += draw.textbbox((0,0), tag, font=tag_f)[2] + 110
+    y += 110
 
-    # Scores box
-    sx, sy = pad+40, y + 20
-    draw.text((sx, sy), "Your Boundary Compass:", fill=(30, 30, 30), font=font_mid)
-    sy += 60
-    for label, key in [("I", "I"), ("C", "C"), ("R", "R"), ("T", "T")]:
-        line = f"{label}: {scores[key]}"
-        draw.text((sx, sy), line, fill=(60, 60, 60), font=font_small)
-        sy += 44
+    draw.line([(x, y), (width - pad - 40, y)], fill=(220,220,220), width=3)
+    y += 28
+    draw.text((x, y), "Your Boundary Compass", font=h1_f, fill=(30,30,30))
+    y += 60
 
-    # Footer prompt
-    draw.text((pad+40, height - pad - 180),
-              "How will you use your strengths — and stretch one new mechanism — this week?",
-              fill=(40, 40, 40), font=font_small)
+    maxv = max(scores.values()) if max(scores.values()) > 0 else 1
+    bar_w, bar_h, gap = (width - pad*2 - 120), 28, 22
+    for label in ["I","C","R","T"]:
+        draw_bar(draw, x, y, f"{label}: {scores[label]}", scores[label], maxv, bar_w, bar_h, MECH_COLORS[label], body_f)
+        y += 30 + bar_h + gap
+
+    footer_text = "How will you use your strengths — and stretch one new mechanism — this week?"
+    draw.text((x, height - pad - 140), footer_text, font=small_f, fill=(50,50,50))
 
     bio = io.BytesIO()
-    bg.save(bio, format="PNG")
-    bio.seek(0)
+    img.save(bio, format="PNG"); bio.seek(0)
     return bio
 
 # ------------------------------------------------------------
@@ -358,10 +363,9 @@ def generate_result_card(archetype_code: str, scores: dict, width: int = 1080, h
 # ------------------------------------------------------------
 def scenario_ui(index: int):
     sc = SCENARIOS[index]
-    # Banner image
     banner = safe_load_image(sc.get("img"))
-    if banner:
-        st.image(banner, use_column_width=True)
+    if banner: st.image(banner, use_column_width=True)
+
     st.markdown(f"### {sc['title']}")
     st.caption(sc["context"])
     with st.expander("Why this matters", expanded=False):
@@ -369,7 +373,7 @@ def scenario_ui(index: int):
 
     options = [label for (label, _m) in sc["opts"]]
     prev = st.session_state.answers.get(index, None)
-    default = options.index(prev) if prev in options else 0  # mobile-friendly
+    default = options.index(prev) if prev in options else 0
     choice = st.radio("What would you most likely do?",
                       options, index=default, label_visibility="collapsed", key=f"q_{index}")
 
@@ -397,24 +401,23 @@ def results_ui():
     st.markdown(f"## {meta['name']}")
     st.write(meta["desc"])
 
-    # Stretch guidance
     ordered = sorted(scores.items(), key=lambda x: x[1], reverse=True)
     dom = [ordered[0][0], ordered[1][0]]
     dom_text = " and ".join({"I":"Identification","C":"Coordination","R":"Reflection","T":"Transformation"}[d] for d in dom)
     st.markdown(f"**Your pattern:** You tend to begin boundary work through *{dom_text}*.")
 
-    st.markdown("**Your next edge:**")
+    st.markdown("**Your next edge (doable this week):**")
     for mech, _ in underused(scores):
         label = {"I":"Identification","C":"Coordination","R":"Reflection","T":"Transformation"}[mech]
-        st.write(f"- *{label}*: {MICRO_PRACTICES[mech]}")
+        st.write(f"- **{label}** — {MICRO_PRACTICES[mech]}")
 
     st.divider()
-    st.markdown("**One small reflection for the week:** Which upcoming situation might test your Compass — and what tiny experiment will you try?")
+    st.markdown("**One small reflection:** Which upcoming situation might test your Compass — and what tiny experiment will you try?")
 
-    # Generate and show the pictorial result card + download button
     card_png = generate_result_card(code, scores)
-    st.image(card_png, caption="Tap and hold to save — or use the download button below.", use_column_width=True)
-    st.download_button("⬇️ Download your result card (PNG)", data=card_png, file_name="boundary_compass_card.png", mime="image/png")
+    st.image(card_png, caption="Tap-and-hold to save (mobile) or use the button below.", use_column_width=True)
+    st.download_button("⬇️ Download your result card (PNG)", data=card_png,
+                       file_name="boundary_compass_card.png", mime="image/png")
 
     st.caption(FOOTER)
 
@@ -422,9 +425,7 @@ def results_ui():
 # App flow
 # ------------------------------------------------------------
 def main():
-    if "order" not in st.session_state:
-        init_state()
-
+    init_state()
     st.title(TITLE)
     st.caption(SUB)
     with st.expander("What is this about?", expanded=False):
