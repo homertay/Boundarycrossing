@@ -322,3 +322,4 @@ if st.session_state.page < len(SCENARIOS):
     scenario_ui(idx)
 else:
     results_ui()
+    
