@@ -1,9 +1,6 @@
-import os
-import io
 import random
 import streamlit as st
 import plotly.graph_objects as go
-from PIL import Image, ImageDraw, ImageFont
 
 # ============================================================
 # PAGE CONFIG + LIGHT CSS
@@ -26,272 +23,231 @@ def apply_css():
     </style>
     """, unsafe_allow_html=True)
 
-TITLE = "🧭 The Boundary Compass — Singapore Workplace Edition"
-SUB = "A thoughtful, bite-sized game about how you respond at boundaries"
+TITLE = "🧭 The Boundary Compass — Singapore / ASEAN Workplace Edition"
+SUB = "See your default move in complexity — and what else could work"
 
 INTRO = """
-Boundaries aren’t barriers — they’re where learning happens.
+In complex work, the toughest moments live **at the boundaries** — between roles, functions, values, and systems.
 
-This game surfaces how you tend to cross boundaries using four mechanisms:
+This game reflects how you tend to cross boundaries using four mechanisms:
 **Identification (I)** – clarifying purpose & differences  
 **Coordination (C)** – building shared routines or tools  
 **Reflection (R)** – making sense through dialogue  
 **Transformation (T)** – turning insights into new practices
 
-Choose what you would **most likely** do in each dilemma.
-After each choice, take a beat for a **reflection nudge** — then move on.
+Pick what you would **most likely** do.  
+After each choice, take a quick **reflection nudge** — then move on.
 """
 
-FOOTER = "*Based on boundary-crossing research by Akkerman & Bakker (2011).*"
-IMAGES_DIR = "images"   # optional; app runs fine without images
-FONTS = {"bold":"NotoSans-Bold.ttf", "regular":"NotoSans-Regular.ttf"}  # optional; app falls back if missing
+FOOTER = "*Inspired by boundary-crossing research (Akkerman & Bakker, 2011).*"
+MECH_COLORS = {"I": (36,113,163), "C": (23,165,137), "R": (241,196,15), "T": (142,68,173)}
 
 # ============================================================
-# RICH SCENARIOS (12) — role-neutral SG/ASEAN workplace
+# 12 RICH, WORKPLACE-DRIVEN SCENARIOS (SG/ASEAN, MID–SENIOR)
+# Each offers first-person responses that map to I/C/R/T
 # ============================================================
 SCENARIOS = [
     {
         "key": "s1",
-        "title": "The Idea That Lands Flat",
+        "title": "Global Template, Local Reality (Banking / ASEAN)",
         "context": (
-            "Midway through a busy meeting, you share what you believe is a practical idea that could remove a recurring bottleneck. "
-            "A few people look at their screens; someone changes topic. No one objects, but the idea seems to evaporate. "
-            "You sense that timing, status, or framing may have affected how it landed."
+            "HQ insists every market uses the same compliance template. Vietnam and Indonesia teams say some fields don’t fit local rules. "
+            "Risk wants consistency; country heads want flexibility; delivery is slipping."
         ),
-        "why": (
-            "This isn’t about right/wrong — it’s how you read the room and move the idea without forcing it. "
-            "You can clarify purpose, build a bridge, seek meaning, or quietly prototype."
-        ),
+        "why": "Boundary: global standard vs. local adaptation.",
         "opts": [
-            ("Restate the problem the idea solves and ask if the pain is still real.", "I"),
-            ("Invite two colleagues to co-shape it into a 1-pager before the next session.", "C"),
-            ("Ask a trusted peer later: what made the room go quiet — timing, ownership, or risk?", "R"),
-            ("Run a 1-week micro-test on a small scope and bring evidence back.", "T"),
+            ("I’ll draw a clear line: which fields are non-negotiable, which can be localised.", "I"),
+            ("I’ll co-create a single checklist mapping local differences to the global form.", "C"),
+            ("I’ll ask HQ privately what reputational fear is driving uniformity — what would build trust?", "R"),
+            ("I’ll pilot a 'local-within-global' version in one market and share outcomes.", "T"),
         ],
     },
     {
         "key": "s2",
-        "title": "The Overloaded Team",
+        "title": "Innovation Under Governance (GLC / Singapore)",
         "context": (
-            "Your team has been sprinting for weeks. A strategic project now drops in with senior visibility and a tight runway. "
-            "People care about the work, but energy and patience are thin. Quietly, trade-offs are already happening."
+            "Your CEO says 'innovate like a start-up' while new ideas still pass three committees. "
+            "Your team is sceptical — they’ve seen proposals die in process."
         ),
-        "why": (
-            "The question isn’t only ‘Can we do it?’ but ‘How do we do it without costing the team more than it can bear?’ "
-            "You can set boundaries, create structure, host a human conversation, or redesign the way of working."
-        ),
+        "why": "Boundary: aspiration vs. system.",
         "opts": [
-            ("Clarify what outcome is non-negotiable and what can be de-scoped or delayed.", "I"),
-            ("Co-prioritise tasks, freeze lower-value work, and publish a visible plan.", "C"),
-            ("Surface the human reality in a short check-in: what support do we need to do this well?", "R"),
-            ("Trial a new rhythm (focus blocks, no-meeting windows) for two weeks and review.", "T"),
+            ("I’ll clarify where experimentation is truly authorised and what remains governed.", "I"),
+            ("I’ll design a fast-track lane: small budget, lighter approvals, clear guardrails.", "C"),
+            ("I’ll check with committee heads what 'risk' actually means to them.", "R"),
+            ("I’ll run one sprint, document what governance helped or hindered, and propose tweaks.", "T"),
         ],
     },
     {
         "key": "s3",
-        "title": "The Quiet Colleague",
+        "title": "Regional Call, Different Rhythms (ASEAN)",
         "context": (
-            "A colleague who thinks deeply rarely speaks in group settings. Their drafts are strong, but in meetings their ideas arrive late or not at all, and the team moves on. "
-            "You sense both a personal preference and an environmental pattern."
+            "On a tri-country call (SG/Jakarta/Bangkok), direct voices dominate early; concerns surface late via side-chats. "
+            "Deadlines slip because issues stay unspoken until the end."
         ),
-        "why": (
-            "This is a boundary of preference, safety, and group rhythm. "
-            "You can name the gap, create a different container, explore the pattern, or design a practice that builds voice."
-        ),
+        "why": "Boundary: efficiency vs. inclusion; directness vs. respect.",
         "opts": [
-            ("Check in privately: what conditions help them contribute live vs async?", "I"),
-            ("Move early ideation to trios/async notes, then harvest in the meeting.", "C"),
-            ("Reflect with the team on who gets airtime and when — to notice, not to blame.", "R"),
-            ("Invite the colleague to co-lead a small segment next week with a clear brief.", "T"),
+            ("I’ll name the pattern and define who decides, who speaks, and who follows up.", "I"),
+            ("I’ll rotate facilitation and use a live notes doc where all add points.", "C"),
+            ("I’ll ask each market what silence or disagreement signals in their culture.", "R"),
+            ("I’ll co-design a new cadence (round-robins, pre-reads) and trial for a month.", "T"),
         ],
     },
     {
         "key": "s4",
-        "title": "The Missing Context",
+        "title": "Net-Zero vs. Margin (Manufacturing / Board)",
         "context": (
-            "You join a programme mid-stream. Decisions have been made; documents exist but don’t align; the calendar is unforgiving. Different people give slightly different versions of the story."
+            "Sustainability wants plant retrofits; Finance warns margins will dip; the board wants both credibility and returns. "
+            "Investors are asking for a plan."
         ),
-        "why": (
-            "Speed is tempting; so is analysis. The leadership move is sense-making that unlocks action. "
-            "You can clarify anchors, coordinate alignment, reflect on patterns, or synthesise a map to test."
-        ),
+        "why": "Boundary: purpose and performance.",
         "opts": [
-            ("Ask for anchor clarity: purpose, scope, decision-rights, and current risks.", "I"),
-            ("Book a 20-minute alignment huddle to name three truths and three unknowns.", "C"),
-            ("Watch two ceremonies to read norms, language, and power dynamics.", "R"),
-            ("Create a 1-page ‘Where we are/Where we’re heading’ map and iterate.", "T"),
+            ("I’ll define what 'material impact' means for the board and investors.", "I"),
+            ("I’ll convene Finance, Ops, ESG to build a shared cost/benefit model.", "C"),
+            ("I’ll host a dialogue on the firm’s appetite for reputational vs. financial risk.", "R"),
+            ("I’ll propose one-plant retrofit as a learning pilot with milestones.", "T"),
         ],
     },
     {
         "key": "s5",
-        "title": "The Tech Shortcut",
+        "title": "Office Days or Real Culture? (Hybrid / Singapore)",
         "context": (
-            "A new AI tool might cut manual effort by half. Excitement mixes with worry about quality, privacy, and the learning curve. "
-            "No one wants to be the first to fail publicly."
+            "Policy says three days in office. Productivity is fine, but cohesion feels weaker; leaders claim 'culture can’t happen on Zoom.' "
+            "Teams want autonomy; the company wants community."
         ),
-        "why": (
-            "Adoption is a boundary between risk and reward. You can define what ‘good’ is, scaffold a safe pilot, surface fears, or craft a new hybrid workflow."
-        ),
+        "why": "Boundary: flexibility vs. belonging.",
         "opts": [
-            ("Define success/guardrails (data, accuracy, review) before anyone tests it.", "I"),
-            ("Run a bounded pilot with checkpoints and a simple decision tree.", "C"),
-            ("Hold a short ‘hopes & worries’ round — note what trust would look like.", "R"),
-            ("Redesign the task as ‘AI drafts, human curates’; publish the pattern if it works.", "T"),
+            ("I’ll clarify what culture outcomes are expected from office time.", "I"),
+            ("I’ll align on team-specific rhythms instead of a blanket rule.", "C"),
+            ("I’ll ask staff which moments actually build connection and why.", "R"),
+            ("I’ll design hybrid rituals that recreate those moments (online/offline).", "T"),
         ],
     },
     {
         "key": "s6",
-        "title": "The Feedback Moment",
+        "title": "Founder Gravity (Family Business / ASEAN)",
         "context": (
-            "A peer says, ‘Be honest — how was my presentation?’ You saw strong thinking but a muddy storyline and slides with too much text. They look nervous yet eager."
+            "You’re the first non-family COO. The founder still signs major decisions; the next generation wants change but avoids conflict. "
+            "You need progress without rupture."
         ),
-        "why": (
-            "This is less about judgement and more about growth. You can clarify what feedback they want, structure the conversation, explore your own hesitation, or move into practice together."
-        ),
+        "why": "Boundary: legacy vs. renewal.",
         "opts": [
-            ("Ask what kind of feedback is most useful now — big picture, delivery, or slide craft.", "I"),
-            ("Use a structure: two strengths, two improvements, one next step.", "C"),
-            ("Notice and name your own hesitation — fear of hurting or fear of conflict?", "R"),
-            ("Offer a 30-min re-rehearsal and co-edit three slides together.", "T"),
+            ("I’ll define which decisions require founder sign-off and which can be delegated.", "I"),
+            ("I’ll institute a weekly steering meeting with both generations and fixed agenda.", "C"),
+            ("I’ll explore with each side what 'losing control' or 'earning trust' means.", "R"),
+            ("I’ll build a dual-sign-off model for one unit and show effect on speed/quality.", "T"),
         ],
     },
     {
         "key": "s7",
-        "title": "The Sticky Stakeholder",
+        "title": "Calibration Bias (Multicultural Team / Appraisals)",
         "context": (
-            "A senior stakeholder keeps pivoting the brief as new inputs arrive. The team’s patience is fraying; work gets redone; trust is thinning."
+            "In calibration, confident self-promoters are rewarded; modest high-performers get overlooked. "
+            "You sense style is outshining substance."
         ),
-        "why": (
-            "You could escalate, absorb, or enable better decision hygiene. The leadership move is to help the system decide better next time."
-        ),
+        "why": "Boundary: cultural humility vs. visibility; fairness through equity, not equality.",
         "opts": [
-            ("Clarify ‘done for this round’: decision scope, criteria, and success signal.", "I"),
-            ("Summarise pivots and confirm in writing with a simple ‘version/decision’ log.", "C"),
-            ("Ask upstream: what pressures/incentives are driving the zig-zag?", "R"),
-            ("Co-design a lightweight playbook: roles, gates, and timeboxes.", "T"),
+            ("I’ll clarify evaluation criteria and evidence expectations up front.", "I"),
+            ("I’ll coach quieter staff to prepare impact stories and data.", "C"),
+            ("I’ll reflect with HR on biases for presentation over contribution.", "R"),
+            ("I’ll revise templates to weight collaboration and stewardship.", "T"),
         ],
     },
     {
         "key": "s8",
-        "title": "The Missed Deadline",
+        "title": "Digital Roadmap, Again (Transformation / Org)",
         "context": (
-            "A dependency slipped and several teams were impacted. You were one of many moving parts. The chat is now full of heat — some helpful, some not."
+            "It’s the third 'digital roadmap' in five years. Managers joke the decks change faster than systems. "
+            "A new CDO asks you to 're-energise the ground.'"
         ),
-        "why": (
-            "Accountability can harden into blame or open into learning. You can name your part, coordinate recovery, reflect on the system, or change the way of working."
-        ),
+        "why": "Boundary: messaging vs. meaning; theatre vs. lived change.",
         "opts": [
-            ("Own your slice: what you knew, decided, and will do differently.", "I"),
-            ("Call a 20-min reset with affected teams; publish the new timeline.", "C"),
-            ("Ask: which assumptions and signals did we miss across teams?", "R"),
-            ("Propose a new handover pattern (checklist + single owner) and pilot it.", "T"),
+            ("I’ll list what has actually changed vs. what’s rebranded.", "I"),
+            ("I’ll co-create small, visible wins near customers and measure adoption.", "C"),
+            ("I’ll ask teams why previous efforts lost traction; listen for patterns.", "R"),
+            ("I’ll launch one real workflow change and publish before/after metrics.", "T"),
         ],
     },
     {
         "key": "s9",
-        "title": "The Team Debate",
+        "title": "Vendor Velocity vs. Compliance Brakes (Tech / Regulated)",
         "context": (
-            "Two colleagues argue passionately: one wants a tight plan, the other a looser exploration. Both have good reasons; the room is splitting into camps."
+            "Overseas vendor sprints fast; your compliance team checks everything thoroughly. "
+            "Releases keep slipping; both sides are frustrated."
         ),
-        "why": (
-            "Binary fights hide shared goals. You can reframe the problem, set a structure to try, seek the principles underneath, or run a safe-to-fail probe."
-        ),
+        "why": "Boundary: agility vs. safety.",
         "opts": [
-            ("Re-ask: what core problem are we solving and by when?", "I"),
-            ("Choose one path for two weeks with review points; document the bet.", "C"),
-            ("Invite each to explain their principle (risk, speed, learning) without rebuttal.", "R"),
-            ("Blend into a short pilot: structured milestones with open exploration inside.", "T"),
+            ("I’ll define what counts as 'critical risk' for both sides.", "I"),
+            ("I’ll set a shared release cadence with clear checkpoints.", "C"),
+            ("I’ll host a retrospective on where each side felt blocked and why.", "R"),
+            ("I’ll prototype a hybrid sprint model combining both rhythms.", "T"),
         ],
     },
     {
         "key": "s10",
-        "title": "The Change Rollout",
+        "title": "Public-Sector Partnership (Private x Agency)",
         "context": (
-            "A new policy launches. People groan: ‘Another change…’ They’ve seen many starts without finishes; trust needs rebuilding."
+            "Your firm co-delivers with a government agency. You value speed; they value consensus. "
+            "Timelines slip; both say 'different ways of working.'"
         ),
-        "why": (
-            "This is a boundary between intention and experience. You can clarify meaning, create a bridge for questions, host sense-making, or show responsiveness through tweaks."
-        ),
+        "why": "Boundary: agility vs. legitimacy; fast results vs. due process.",
         "opts": [
-            ("Explain what this change fixes, what stays the same, and the timeline.", "I"),
-            ("Open a Q&A doc with 48-hour responses and a change log.", "C"),
-            ("Ask: what do people fear losing, and what would reassure them?", "R"),
-            ("Use early feedback to adjust one rule this week and show the loop working.", "T"),
+            ("I’ll clarify which deliverables are time-sensitive vs. which need formal sign-offs.", "I"),
+            ("I’ll map approval gates together and agree turnaround times.", "C"),
+            ("I’ll reflect jointly on fears: loss of reputation vs. loss of relevance.", "R"),
+            ("I’ll run a co-delivery pilot with delegated authority and review impact.", "T"),
         ],
     },
     {
         "key": "s11",
-        "title": "The Sustainability Trade-off",
+        "title": "Newly Acquired, Not Assimilated (M&A / Region)",
         "context": (
-            "Greener materials and processes align with public commitments, but will raise cost and slow delivery for several months. "
-            "Finance worries about margins; Operations worries about throughput; the Sustainability team worries about credibility."
+            "Your SG company acquired a Thai SME. HQ pushes quick integration; Thai team fears losing identity. "
+            "Emails are polite; tension is real."
         ),
-        "why": (
-            "This is a boundary between values and viability. You can define terms, coordinate decision rules, invite conscience, or create a new metric/practice."
-        ),
+        "why": "Boundary: identity vs. efficiency — integrate without assimilation.",
         "opts": [
-            ("Define what ‘sustainable enough for this decision’ means; set the boundary.", "I"),
-            ("Co-create a decision playbook with thresholds and review cadence.", "C"),
-            ("Host a conscience dialogue: what message do we send by choosing X vs Y?", "R"),
-            ("Pilot a blended path (profit × carbon intensity) and track publicly.", "T"),
+            ("I’ll name non-negotiables (brand, reporting, safety) vs. areas for localisation.", "I"),
+            ("I’ll create mixed working groups to harmonise policy step by step.", "C"),
+            ("I’ll host listening sessions on what 'being part of the group' means locally.", "R"),
+            ("I’ll design a joint-brand product to honour both names and test together.", "T"),
         ],
     },
     {
         "key": "s12",
-        "title": "The Small Win",
+        "title": "The Retention Puzzle (Post-Covid / Purpose)",
         "context": (
-            "After weeks of effort, the team clears a tough milestone. Slack is quiet for two minutes and then everyone rushes to the next task."
+            "Top performers leave for start-ups offering flexibility and purpose. "
+            "The board wants a retention plan; you know money alone won’t fix it."
         ),
-        "why": (
-            "Celebration and reflection are not indulgences; they build capability. You can name the win, add a simple ritual, harvest meaning, or embed the habit."
-        ),
+        "why": "Boundary: extrinsic vs. intrinsic motivation; reward vs. meaning.",
         "opts": [
-            ("Name the win and who made it possible — in writing.", "I"),
-            ("Add a 5-minute retro at the next stand-up (what worked/blocked/changed).", "C"),
-            ("Ask each person for one surprise and one learning; capture in one slide.", "R"),
-            ("Create a recurring ‘small wins’ ritual and rotate the host monthly.", "T"),
+            ("I’ll clarify our true value proposition beyond pay.", "I"),
+            ("I’ll involve employees in shaping career paths and flexibility norms.", "C"),
+            ("I’ll run dialogues: what keeps you here, what might make you leave?", "R"),
+            ("I’ll prototype a talent-experience initiative centred on purpose stories and impact.", "T"),
         ],
     },
 ]
 
 # ============================================================
-# REFLECTION NUDGES (shown after each choice)
+# REFLECTION NUDGES (after each choice)
 # ============================================================
 NUDGES = {
-    "I": "You chose to begin with **Identification** — clarity can reduce noise. Watch for over-reliance on ‘stating’ without **testing**.",
-    "C": "You leaned on **Coordination** — helpful when things scatter. Notice when process becomes protection from **trying**.",
-    "R": "You went with **Reflection** — sense-making opens learning. Beware staying in analysis instead of **acting**.",
-    "T": "You moved to **Transformation** — experiments shift systems. Check that new patterns still honour core **boundaries**."
+    "I": "You chose **Identification** — clarity reduces noise. Notice when stating isn’t enough without **testing** something small.",
+    "C": "You chose **Coordination** — structure helps flow. Watch if process becomes protection from **trying**.",
+    "R": "You chose **Reflection** — sense-making opens learning. Beware staying in analysis instead of **acting**.",
+    "T": "You chose **Transformation** — experiments shift systems. Check that new patterns still honour core **boundaries**.",
 }
 
 # ============================================================
-# ARCHETYPES + MICRO-PRACTICES
+# MICRO-PRACTICES (concrete next steps)
 # ============================================================
-ARCHETYPE_META = {
-    "IT": {"name":"🧩 Lego Synthesiser","desc":"You integrate old and new wisely — re-assembling pieces into better forms.",
-            "color":(50,115,220),"tags":["Integrative","Inventive","Pragmatic"]},
-    "IC": {"name":"🎫 EZ-Link Navigator","desc":"You read systems quickly and help people move through rules and structures.",
-            "color":(23,165,137),"tags":["Organised","Reliable","Clear"]},
-    "CR": {"name":"🧂 Condiment Connector","desc":"You blend people and process; things go smoother when you’re around.",
-            "color":(241,196,15),"tags":["Inclusive","Diplomatic","Steady"]},
-    "RT": {"name":"🥫 Milo Tin Transformer","desc":"You learn fast and repurpose experience into creative new practice.",
-            "color":(142,68,173),"tags":["Creative","Adaptive","Bold"]},
-    "IR": {"name":"🪞 Kopitiam Mirror","desc":"You surface assumptions and help others see clearly — with care and calm.",
-            "color":(84,153,199),"tags":["Insightful","Grounded","Thoughtful"]},
-    "CT": {"name":"🧰 Swiss Knife Collaborator","desc":"You make innovation operational — bridging ideas into routines.",
-            "color":(46,134,171),"tags":["Versatile","Hands-on","Systemic"]},
-    "ALL":{"name":"🌀 Boundary Alchemist","desc":"You flex across all four mechanisms and catalyse learning in others.",
-            "color":(88,101,242),"tags":["Balanced","Catalytic","Versatile"]},
-}
-
 MICRO_PRACTICES = {
-    "I": "Run a 15-min **kick-off clarity** chat before your next project. Pin a 1-page note: purpose, roles, decision rights, out-of-scope.",
+    "I": "Run a 15-min **kick-off clarity** huddle before your next project. Pin a 1-page note: purpose, roles, decision rights, out-of-scope.",
     "C": "Create **one shared artefact** this week (checklist, template, or dashboard) that two functions agree to use.",
-    "R": "After a key meeting, host a 5-min **sense-making pause**: ‘What did we learn? What assumptions surfaced?’ Capture 1 line each.",
-    "T": "Pick one cross-team pain point and run a **1-week mini-experiment** (new handover, short sync, or co-lead trial). If it works, bake it in."
+    "R": "After a key meeting, host a 5-min **sense-making pause**: ‘What did we learn? What assumptions surfaced?’ Capture one line each.",
+    "T": "Pick one cross-team pain point and run a **1-week mini-experiment** (new handover, short sync, or co-lead trial). If it works, bake it in.",
 }
-
-MECH_COLORS = {"I":(36,113,163),"C":(23,165,137),"R":(241,196,15),"T":(142,68,173)}
 
 # ============================================================
 # STATE & SCORING
@@ -300,89 +256,28 @@ def init_state():
     if "order" not in st.session_state:
         st.session_state.order = list(range(len(SCENARIOS)))
         random.shuffle(st.session_state.order)
-    if "page" not in st.session_state: st.session_state.page = 0            # which scenario index (0..11)
-    if "answers" not in st.session_state: st.session_state.answers = {i: None for i in range(len(SCENARIOS))}
-    if "subpage" not in st.session_state: st.session_state.subpage = 0      # 0=question, 1=reflection
+    if "page" not in st.session_state:
+        st.session_state.page = 0           # which scenario (0..11)
+    if "answers" not in st.session_state:
+        st.session_state.answers = {i: None for i in range(len(SCENARIOS))}
+    if "subpage" not in st.session_state:
+        st.session_state.subpage = 0        # 0=question, 1=reflection
 
 def score_mechanisms():
-    s = {"I":0,"C":0,"R":0,"T":0}
-    for i,a in st.session_state.answers.items():
+    s = {"I":0, "C":0, "R":0, "T":0}
+    for i, a in st.session_state.answers.items():
         if a:
-            for (opt,m) in SCENARIOS[i]["opts"]:
+            for (opt, m) in SCENARIOS[i]["opts"]:
                 if a == opt: s[m] += 1
     return s
 
-def pick_archetype(scores):
-    vals = list(scores.values()); spread = max(vals) - min(vals)
-    if spread <= 1: return "ALL"
+def top_mechanisms(scores, k=2):
     ordered = sorted(scores.items(), key=lambda x: x[1], reverse=True)
-    primary, secondary = ordered[0][0], ordered[1][0]
-    pair = primary + secondary
-    mapping = {"IT":"IT","IC":"IC","CR":"CR","RT":"RT","IR":"IR","CT":"CT",
-               "I":"IR","C":"CT","R":"RT","T":"IT"}
-    return mapping.get(pair, mapping.get(primary, "ALL"))
+    return [m for m,_ in ordered[:k]]
 
-def underused(scores):
-    return sorted(scores.items(), key=lambda x: x[1])[:2]
-
-# ============================================================
-# GRAPHICS HELPERS + RESULT CARD
-# ============================================================
-def load_font(path, size):
-    try: return ImageFont.truetype(path, size)
-    except Exception: return ImageFont.load_default()
-
-def draw_bar(draw, x, y, label, val, maxv, w, h, fill, font):
-    draw.text((x, y), label, font=font, fill=(30,30,30))
-    by = y + 30
-    draw.rounded_rectangle([x, by, x + w, by + h], radius=h//2, fill=(230,230,230))
-    vw = int(w * (val/maxv)) if maxv > 0 else 0
-    draw.rounded_rectangle([x, by, x + vw, by + h], radius=h//2, fill=fill)
-
-def draw_pill(draw, x, y, text, font, pad=16, fill=(50,50,50), txt=(255,255,255)):
-    w, h = draw.textbbox((0,0), text, font=font)[2:]
-    draw.rounded_rectangle([x, y, x + w + pad*2, y + h + pad], radius=999, fill=fill)
-    draw.text((x + pad, y + pad//2), text, font=font, fill=txt)
-
-def generate_result_card(code, scores, width=1080, height=1920):
-    meta = ARCHETYPE_META[code]; theme = meta["color"]
-    img = Image.new("RGB",(width,height),theme); d = ImageDraw.Draw(img)
-    # gradient
-    for i in range(height):
-        t = i/height
-        r = int(theme[0]*(1-0.10*t) + 255*(0.10*t))
-        g = int(theme[1]*(1-0.10*t) + 255*(0.10*t))
-        b = int(theme[2]*(1-0.10*t) + 255*(0.10*t))
-        d.line([(0,i),(width,i)], fill=(r,g,b))
-    # panel
-    pad = 60
-    d.rounded_rectangle([pad,pad,width-pad,height-pad], radius=56, fill=(250,250,250))
-    # fonts
-    title_f = load_font(FONTS["bold"], 78)
-    h1_f    = load_font(FONTS["bold"], 46)
-    body_f  = load_font(FONTS["regular"], 36)
-    tag_f   = load_font(FONTS["bold"], 32)
-    small_f = load_font(FONTS["regular"], 30)
-    # content
-    x = pad + 52; y = pad + 80
-    d.text((x,y), f"You are… {meta['name']}", font=title_f, fill=(30,30,30))
-    y += 120; d.text((x,y), meta["desc"], font=h1_f, fill=(65,65,65))
-    y += 120
-    pill_x = x
-    for tag in meta.get("tags", [])[:3]:
-        draw_pill(d, pill_x, y, tag, tag_f, fill=(60,60,60)); pill_x += 260
-    y += 110
-    d.line([(x,y),(width-pad-52,y)], fill=(220,220,220), width=4); y += 40
-    d.text((x,y), "Your Boundary Compass", font=h1_f, fill=(30,30,30)); y += 64
-    maxv = max(scores.values()) if max(scores.values())>0 else 1
-    bw, bh, gap = (width-pad*2-120), 36, 28
-    for k in ["I","C","R","T"]:
-        draw_bar(d, x, y, f"{k}: {scores[k]}", scores[k], maxv, bw, bh, MECH_COLORS[k], body_f)
-        y += 40 + bh + gap
-    d.text((x, height-pad-180),
-           "Use your strengths — and stretch one new mechanism — this week.",
-           font=small_f, fill=(60,60,60))
-    bio = io.BytesIO(); img.save(bio, "PNG", optimize=True); bio.seek(0); return bio
+def underused(scores, k=2):
+    ordered = sorted(scores.items(), key=lambda x: x[1])
+    return [m for m,_ in ordered[:k]]
 
 # ============================================================
 # UI — SCENARIO + REFLECTION NUDGE + RESULTS
@@ -390,16 +285,18 @@ def generate_result_card(code, scores, width=1080, height=1920):
 def scenario_ui(i):
     sc = SCENARIOS[i]
     if st.session_state.subpage == 0:
-        # QUESTION PAGE
+        # QUESTION
         st.markdown(f"### {sc['title']}")
         st.caption(sc["context"])
         with st.expander("Why this matters", expanded=False):
             st.write(sc["why"])
+
         options = [o for (o,_m) in sc["opts"]]
         prev = st.session_state.answers.get(i)
         default = options.index(prev) if prev in options else 0
-        choice = st.radio("What would you most likely do?",
-                          options, index=default, label_visibility="collapsed", key=f"q_{i}")
+        choice = st.radio("Your most likely move?", options, index=default,
+                          label_visibility="collapsed", key=f"q_{i}")
+
         c1, c2 = st.columns(2)
         if c1.button("◀ Back", disabled=(st.session_state.page == 0), use_container_width=True):
             st.session_state.page -= 1
@@ -407,53 +304,57 @@ def scenario_ui(i):
             st.rerun()
         if c2.button("Next ▶", use_container_width=True):
             st.session_state.answers[i] = choice
-            st.session_state.subpage = 1   # go to reflection nudge
+            st.session_state.subpage = 1
             st.rerun()
     else:
-        # REFLECTION NUDGE PAGE
-        # find mechanism of chosen option
+        # REFLECTION NUDGE
         picked = st.session_state.answers[i]
         mech = None
-        for (opt,m) in SCENARIOS[i]["opts"]:
-            if opt == picked: mech = m; break
+        for (opt, m) in SCENARIOS[i]["opts"]:
+            if opt == picked:
+                mech = m
+                break
+
         st.info(f"**You chose:** {picked}")
-        st.markdown(f"### Quick reflection")
-        st.write(NUDGES.get(mech, "Notice what this move opens — and what it might miss."))
-        st.markdown("> One question before you continue: *What small risk would you take next to balance this move?*")
-        c = st.button("Continue ▶", use_container_width=True)
-        if c:
+        st.markdown("### Quick reflection")
+        st.write(NUDGES.get(mech, "Notice what this opens — and what it might miss."))
+        st.markdown("> If this were you: *What could be true here that you haven’t considered?*")
+
+        if st.button("Continue ▶", use_container_width=True):
             st.session_state.subpage = 0
             st.session_state.page += 1
             st.rerun()
 
 def results_ui():
     scores = score_mechanisms()
-    st.success("🎉 You’ve completed your Boundary Compass journey.")
-    c1,c2,c3,c4 = st.columns(4)
+    st.success("🎉 You’ve completed your Boundary Compass")
+
+    # Metrics + bar chart
+    c1, c2, c3, c4 = st.columns(4)
     c1.metric("I", scores["I"]); c2.metric("C", scores["C"]); c3.metric("R", scores["R"]); c4.metric("T", scores["T"])
+
     fig = go.Figure(go.Bar(
         x=[scores["I"], scores["C"], scores["R"], scores["T"]],
-        y=["I","C","R","T"], orientation="h",
+        y=["Identification (I)", "Coordination (C)", "Reflection (R)", "Transformation (T)"],
+        orientation="h",
         marker=dict(color=[MECH_COLORS[k] for k in ["I","C","R","T"]])
     ))
-    fig.update_layout(height=320, margin=dict(l=10,r=10,t=10,b=10))
+    fig.update_layout(height=360, margin=dict(l=10, r=10, t=10, b=10))
     st.plotly_chart(fig, use_container_width=True)
 
-    code = pick_archetype(scores); meta = ARCHETYPE_META[code]
-    st.markdown(f"## {meta['name']}"); st.write(meta["desc"])
+    # Pattern summary
+    names = {"I":"Identification","C":"Coordination","R":"Reflection","T":"Transformation"}
+    top2 = top_mechanisms(scores, 2)
+    st.markdown(f"**Where you tend to start:** *{', '.join(names[m] for m in top2)}*")
 
-    st.markdown("**Your next edge (simple and doable this week):**")
-    for mech,_ in underused(scores):
-        st.write(f"- **{mech}** — {MICRO_PRACTICES[mech]}")
+    # Stretch prompts
+    lows = underused(scores, 2)
+    st.markdown("**Try this next week (small, practical):**")
+    for m in lows:
+        st.write(f"- **{names[m]}** — {MICRO_PRACTICES[m]}")
 
     st.divider()
-    st.write("**One small reflection:** Which upcoming situation might test your Compass — and what tiny experiment will you try?**")
-
-    # Result card + download
-    card = generate_result_card(code, scores)
-    st.image(card, use_column_width=True, caption="Save or screenshot your result card.")
-    st.download_button("⬇️ Download result card", data=card, file_name="BoundaryCompass.png", mime="image/png")
-
+    st.write("**One small reflection:** Which upcoming situation might test your Compass — and what tiny experiment will you try?")
     st.caption(FOOTER)
 
 # ============================================================
@@ -465,10 +366,11 @@ def main():
 
     st.title(TITLE)
     st.caption(SUB)
-    with st.expander("What is this about?", expanded=False):
+    with st.expander("What this is", expanded=False):
         st.markdown(INTRO)
 
-    st.progress((st.session_state.page + st.session_state.subpage*0.5) / len(SCENARIOS))
+    progress = (st.session_state.page + st.session_state.subpage * 0.5) / len(SCENARIOS)
+    st.progress(progress)
 
     if st.session_state.page < len(SCENARIOS):
         idx = st.session_state.order[st.session_state.page]
