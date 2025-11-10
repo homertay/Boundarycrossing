@@ -38,7 +38,7 @@ This reflective quiz helps you notice how you tend to cross boundaries using fou
 - **Transformation (T)** – trying small experiments to create new practice  
 
 Each scenario is drawn from real Singapore contexts around innovation, service improvement, and transformation.  
-Choose what you’d **most likely** do — then see a quick nudge to broaden your range.
+Choose what you’d **most likely** do — then see at the end which moves you use most.
 """
 
 FOOTER = "*Inspired by boundary-crossing research (Akkerman & Bakker, 2011).*"
@@ -52,13 +52,13 @@ SCENARIOS = [
         "title": "Innovation vs Operations",
         "context": (
             "Your director asks your division to propose an innovative service idea for the next workplan. "
-            "Teams are already stretched meeting KPIs, and staff worry innovation will become ‘extra work’. "
+            "Teams are already stretched meeting KPIs, and staff worry innovation will become 'extra work'. "
             "You sense resistance masked as politeness."
         ),
         "why": "Boundary: efficiency vs exploration — delivering today while rethinking tomorrow.",
         "opts": [
             ("Clarify how innovation links to this year’s KPIs — what counts as ‘value add’.", "I"),
-            ("Set up a 2-hour ideas clinic with small cross-team groups.", "C"),
+            ("Set up a short ideas clinic with small cross-team groups.", "C"),
             ("Ask the team what makes ‘innovation’ feel risky or unrealistic.", "R"),
             ("Pilot one quick idea using existing tools; share results at division meeting.", "T"),
         ],
@@ -67,7 +67,7 @@ SCENARIOS = [
         "title": "Hierarchy and Voice",
         "context": (
             "In meetings, junior officers rarely challenge senior views. "
-            "After one policy was implemented, feedback revealed field staff had anticipated the issues but kept silent. "
+            "After a policy rollout, feedback showed ground officers had anticipated the issues but kept silent. "
             "You want more upward feedback without breaking decorum."
         ),
         "why": "Boundary: respect for hierarchy vs psychological safety.",
@@ -75,14 +75,14 @@ SCENARIOS = [
             ("Clarify the decision structure — when input is invited vs when direction is fixed.", "I"),
             ("Rotate who presents updates and invite Q&A before management speaks.", "C"),
             ("Ask the team what would make it feel safe to raise tough points early.", "R"),
-            ("Create a reverse-mentoring session where juniors critique a process constructively.", "T"),
+            ("Create a 'reverse-mentoring' session where juniors critique a process constructively.", "T"),
         ],
     },
     {
         "title": "Digital Transformation Fatigue",
         "context": (
-            "Your agency’s new digital platform promises better citizen experience, but staff see it as another system to learn. "
-            "Some quietly revert to old spreadsheets for ‘efficiency’."
+            "Your agency’s new platform promises better citizen experience, but staff see it as another system to learn. "
+            "Some quietly revert to old spreadsheets for 'efficiency'."
         ),
         "why": "Boundary: compliance vs ownership — transformation as something done *to* people or *with* them.",
         "opts": [
@@ -103,7 +103,7 @@ SCENARIOS = [
         "opts": [
             ("Clarify service standards and where discretion is allowed.", "I"),
             ("Redesign roster patterns and escalation channels with staff input.", "C"),
-            ("Facilitate a reflection: what’s within our control vs structural?", "R"),
+            ("Facilitate a discussion: what’s within our control vs structural?", "R"),
             ("Run a one-month pilot to test workload redistribution or automation ideas.", "T"),
         ],
     },
@@ -111,7 +111,7 @@ SCENARIOS = [
         "title": "Data Sharing Across Divisions",
         "context": (
             "Two departments need to share data for a joint dashboard. "
-            "One cites PDPA and prefers email updates; the other needs real-time access to build insights."
+            "One cites PDPA and prefers email updates; the other needs real-time access for insights."
         ),
         "why": "Boundary: caution vs collaboration.",
         "opts": [
@@ -146,7 +146,7 @@ SCENARIOS = [
             ("Clarify the difference between developmental and evaluative feedback sessions.", "I"),
             ("Use a structured template focusing on evidence and next steps.", "C"),
             ("Ask them how they prefer to receive feedback and what support helps.", "R"),
-            ("Try a ‘feed-forward’ experiment — peer-led coaching on one goal for 6 weeks.", "T"),
+            ("Try a ‘feed-forward’ approach — peer-led coaching on one goal for 6 weeks.", "T"),
         ],
     },
     {
@@ -174,27 +174,27 @@ SCENARIOS = [
             ("Clarify what must stay (core values) vs what can change.", "I"),
             ("Pair senior and junior staff on one improvement project.", "C"),
             ("Ask each group what they most respect and most misunderstand about the other.", "R"),
-            ("Create a ‘Then and Now’ showcase of past lessons applied to current problems.", "T"),
+            ("Create a 'Then and Now' showcase linking past lessons to current challenges.", "T"),
         ],
     },
     {
         "title": "Citizen Feedback vs Policy Intent",
         "context": (
-            "Your team pilots a digital form for faster applications. Citizens find it confusing and complain on social media. "
-            "HQ insists the process is correct; frontline officers face daily frustration."
+            "Your team pilots a digital form for faster applications. Citizens find it confusing and complain online. "
+            "HQ insists the process is correct; frontline officers face frustration."
         ),
         "why": "Boundary: policy integrity vs citizen experience.",
         "opts": [
-            ("Clarify the design intent and key constraints with HQ.", "I"),
+            ("Clarify design intent and key constraints with HQ.", "I"),
             ("Set up a feedback loop with daily frontline input to tweak messaging.", "C"),
             ("Ask officers what patterns they observe behind citizen complaints.", "R"),
-            ("Prototype a quick guide or explainer video to test with real users.", "T"),
+            ("Prototype a quick explainer guide or video and test with users.", "T"),
         ],
     },
     {
         "title": "Cross-Agency Project",
         "context": (
-            "You co-lead a project with another agency. Both sides agree on purpose but interpret ‘impact’ differently. "
+            "You co-lead a project with another agency. Both agree on purpose but interpret ‘impact’ differently. "
             "Deadlines slip amid polite emails."
         ),
         "why": "Boundary: shared purpose vs divergent measures of success.",
@@ -222,20 +222,13 @@ SCENARIOS = [
 ]
 
 # ============================================================
-# NUDGES & MICRO-PRACTICES
+# MICRO-PRACTICES FOR GROWTH
 # ============================================================
-NUDGES = {
-    "I": "You brought **clarity** — vital in complexity. Notice when clarity becomes control; where could you invite co-creation next?",
-    "C": "You created **structure** — helpful for alignment. Watch for over-engineering; when might flexibility serve better?",
-    "R": "You paused for **reflection** — powerful for learning. Be alert to over-analysis; where can you move from talk to test?",
-    "T": "You drove **experimentation** — energising for change. Ensure guardrails remain; who else needs to be brought along?"
-}
-
-MICRO_PRACTICES = {
-    "I": "Run a **15-min clarity huddle** before a new initiative: purpose, constraints, decision rights.",
-    "C": "Create **one shared routine** this week (e.g., short daily sync, common tracker, or joint review).",
-    "R": "Host a **sense-making pause** after a busy week: what’s working, what assumptions changed?",
-    "T": "Run a **1-week mini-experiment** with your team — test one improvement safely, share the learning."
+MICRO = {
+    "I": "Run a **15-min clarity huddle**: purpose, scope, and decision rights before each new project.",
+    "C": "Create **one shared process or routine** this month (e.g., tracker, sync, or joint review).",
+    "R": "Host a **sense-making pause**: what surprised us, what assumptions changed, what’s next?",
+    "T": "Run a **1-week mini-experiment** with your team — test one improvement safely and debrief."
 }
 
 # ============================================================
@@ -245,73 +238,65 @@ def init_state():
     if "order" not in st.session_state:
         st.session_state.order = list(range(len(SCENARIOS)))
         random.shuffle(st.session_state.order)
-    if "page" not in st.session_state: st.session_state.page = 0
-    if "subpage" not in st.session_state: st.session_state.subpage = 0
-    if "answers" not in st.session_state: st.session_state.answers = {i: None for i in range(len(SCENARIOS))}
+    if "page" not in st.session_state:
+        st.session_state.page = 0
+    if "answers" not in st.session_state:
+        st.session_state.answers = {i: None for i in range(len(SCENARIOS))}
 
 def score_mechanisms():
     s = {"I":0,"C":0,"R":0,"T":0}
     for i,a in st.session_state.answers.items():
         if a:
             for (opt,m) in SCENARIOS[i]["opts"]:
-                if a == opt: s[m]+=1
+                if a == opt:
+                    s[m] += 1
     return s
 
-def top_mechs(scores,k=2): return [m for m,_ in sorted(scores.items(),key=lambda x:x[1],reverse=True)[:k]]
-def low_mechs(scores,k=2): return [m for m,_ in sorted(scores.items(),key=lambda x:x[1])[:k]]
+def top_mechs(scores, k=2):
+    return [m for m,_ in sorted(scores.items(), key=lambda x: x[1], reverse=True)[:k]]
+
+def low_mechs(scores, k=2):
+    return [m for m,_ in sorted(scores.items(), key=lambda x: x[1])[:k]]
 
 # ============================================================
 # UI FLOW
 # ============================================================
 def show_question(i):
-    sc=SCENARIOS[i]
+    sc = SCENARIOS[i]
     st.markdown(f"### {sc['title']}")
     st.caption(sc["context"])
     with st.expander("Why this is a boundary moment"):
         st.write(sc["why"])
-    opts=[o for (o,_) in sc["opts"]]
-    prev=st.session_state.answers.get(i)
-    idx=opts.index(prev) if prev in opts else 0
-    choice=st.radio("Your most likely move:",opts,index=idx,label_visibility="collapsed",key=f"q_{i}")
-    c1,c2=st.columns(2)
-    if c1.button("◀ Back",disabled=(st.session_state.page==0),use_container_width=True):
-        st.session_state.page-=1;st.rerun()
-    if c2.button("Next ▶",use_container_width=True):
-        st.session_state.answers[i]=choice
-        st.session_state.subpage=1;st.rerun()
-
-def show_reflection(i):
-    sc=SCENARIOS[i]
-    picked=st.session_state.answers[i]
-    mech=next((m for (opt,m) in sc["opts"] if opt==picked),None)
-    st.info(f"**You chose:** {picked}")
-    st.markdown("### Quick reflection")
-    st.write(NUDGES.get(mech,"Notice what this opens — and what it might miss."))
-    st.write("> What else could be true here — and what might you try next time?")
-    if st.button("Continue ▶",use_container_width=True):
-        st.session_state.subpage=0;st.session_state.page+=1;st.rerun()
+    opts = [o for (o,_) in sc["opts"]]
+    prev = st.session_state.answers.get(i)
+    idx = opts.index(prev) if prev in opts else 0
+    choice = st.radio("Your most likely move:", opts, index=idx, label_visibility="collapsed", key=f"q_{i}")
+    c1, c2 = st.columns(2)
+    if c1.button("◀ Back", disabled=(st.session_state.page == 0), use_container_width=True):
+        st.session_state.page -= 1
+        st.rerun()
+    if c2.button("Next ▶", use_container_width=True):
+        st.session_state.answers[i] = choice
+        st.session_state.page += 1
+        st.rerun()
 
 def show_results():
-    s=score_mechanisms()
+    s = score_mechanisms()
     st.success("🎉 You’ve completed your Boundary Compass reflection.")
-
-    # Bar chart
-    c1,c2,c3,c4=st.columns(4)
-    c1.metric("I",s["I"]);c2.metric("C",s["C"]);c3.metric("R",s["R"]);c4.metric("T",s["T"])
-    fig=go.Figure(go.Bar(x=[s["I"],s["C"],s["R"],s["T"]],
+    c1,c2,c3,c4 = st.columns(4)
+    c1.metric("I", s["I"]); c2.metric("C", s["C"]); c3.metric("R", s["R"]); c4.metric("T", s["T"])
+    fig = go.Figure(go.Bar(x=[s["I"],s["C"],s["R"],s["T"]],
         y=["Identification (I)","Coordination (C)","Reflection (R)","Transformation (T)"],
-        orientation="h",marker=dict(color=[MECH_COLORS[k] for k in ["I","C","R","T"]])))
-    fig.update_layout(height=360,margin=dict(l=10,r=10,t=10,b=10))
-    st.plotly_chart(fig,use_container_width=True)
-
-    names={"I":"Identification","C":"Coordination","R":"Reflection","T":"Transformation"}
+        orientation="h", marker=dict(color=[MECH_COLORS[k] for k in ["I","C","R","T"]])))
+    fig.update_layout(height=360, margin=dict(l=10,r=10,t=10,b=10))
+    st.plotly_chart(fig, use_container_width=True)
+    names = {"I":"Identification","C":"Coordination","R":"Reflection","T":"Transformation"}
     st.markdown(f"**Where you tend to start:** *{', '.join(names[m] for m in top_mechs(s))}*")
-
-    st.markdown("**Try this next week (simple + practical):**")
+    st.markdown("**Stretch yourself this month:**")
     for m in low_mechs(s):
-        st.write(f"- **{names[m]}** — {MICRO_PRACTICES[m]}")
-
-    st.divider(); st.caption(FOOTER)
+        st.write(f"- **{names[m]}** — {MICRO[m]}")
+    st.divider()
+    st.caption(FOOTER)
 
 # ============================================================
 # APP ENTRY
@@ -321,13 +306,14 @@ def main():
     init_state()
     st.title(TITLE)
     st.caption(SUB)
-    with st.expander("About this tool", expanded=False): st.markdown(INTRO)
-    progress=(st.session_state.page+st.session_state.subpage*0.5)/len(SCENARIOS)
-    st.progress(progress)
-    if st.session_state.page<len(SCENARIOS):
-        i=st.session_state.order[st.session_state.page]
-        if st.session_state.subpage==0: show_question(i)
-        else: show_reflection(i)
-    else: show_results()
+    with st.expander("About this tool", expanded=False):
+        st.markdown(INTRO)
+    st.progress(st.session_state.page / len(SCENARIOS))
+    if st.session_state.page < len(SCENARIOS):
+        i = st.session_state.order[st.session_state.page]
+        show_question(i)
+    else:
+        show_results()
 
-if __name__=="__main__": main()
+if __name__ == "__main__":
+    main()
