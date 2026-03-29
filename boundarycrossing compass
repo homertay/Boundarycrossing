@@ -1,0 +1,1015 @@
+“””
+The Boundary Compass — Singapore Middle Manager Edition
+Enhanced version for MBX Supporting Development Class
+
+Enhancements over original:
+• Polished UI with custom CSS (Lora + DM Sans, navy/amber palette)
+• Welcome screen with name capture (for report + class collation)
+• Radar chart + horizontal bar side-by-side on results
+• Mechanism detail cards with tier label + personalised narrative
+• HTML report download (printable / save-as-PDF via browser)
+• Submit to Class — shared in-memory store (st.cache_resource)
+• Facilitator Dashboard: aggregate radar, table, CSV export, debrief prompts
+• Password-protected sidebar facilitator login
+“””
+
+import random
+import streamlit as st
+import plotly.graph_objects as go
+from plotly.subplots import make_subplots
+import pandas as pd
+from datetime import datetime
+
+# ─────────────────────────────────────────────────────────────────────────────
+
+# PAGE CONFIG
+
+# ─────────────────────────────────────────────────────────────────────────────
+
+st.set_page_config(
+page_title=“The Boundary Compass | Singapore Manager Edition”,
+page_icon=“🧭”,
+layout=“centered”,
+initial_sidebar_state=“collapsed”,
+)
+
+FACILITATOR_PASSWORD = “mbx2026”   # ← change before class
+
+# ─────────────────────────────────────────────────────────────────────────────
+
+# SHARED CLASS STORE
+
+# ─────────────────────────────────────────────────────────────────────────────
+
+@st.cache_resource
+def get_class_store():
+return []
+
+# ─────────────────────────────────────────────────────────────────────────────
+
+# CONTENT
+
+# ─────────────────────────────────────────────────────────────────────────────
+
+MECH_META = {
+“I”: {
+“name”: “Identification”,
+“icon”: “🎯”,
+“color”: “#2563EB”,
+“tagline”: “Clarifying purpose, constraints, and direction”,
+“desc”: (
+“You tend to start by naming what’s true — the goals, the constraints, “
+“the roles. This is foundational work that prevents misalignment down the track. “
+“Overused, it can slow action; underused, it creates ambiguity that compounds later.”
+),
+“high”: “Strong at framing and focus. Watch for over-clarifying before others are ready to act.”,
+“low”: “Consider slowing down to name purpose and decision rights earlier — it reduces rework.”,
+},
+“C”: {
+“name”: “Coordination”,
+“icon”: “🤝”,
+“color”: “#10B981”,
+“tagline”: “Building shared routines, plans, and accountability”,
+“desc”: (
+“You favour building structure: the routines, trackers, syncs, and handoffs “
+“that make joint work reliable. This creates predictability. “
+“Watch for coordination becoming bureaucracy when trust is what’s actually missing.”
+),
+“high”: “Strong infrastructure builder. Check whether all those structures are actually being used.”,
+“low”: “Small shared artefacts — a tracker, a one-pager, a standing sync — can unlock coordination quickly.”,
+},
+“R”: {
+“name”: “Reflection”,
+“icon”: “🪞”,
+“color”: “#F59E0B”,
+“tagline”: “Pausing to understand perspectives and assumptions”,
+“desc”: (
+“You tend to create space for sense-making: asking what others think, “
+“surfacing assumptions, understanding the ‘why behind the what’. “
+“This builds trust and prevents solutions that miss the real problem.”
+),
+“high”: “Strong at building shared understanding. Pair reflection with action to avoid analysis paralysis.”,
+“low”: “A short ‘assumption audit’ before major decisions could significantly improve collective buy-in.”,
+},
+“T”: {
+“name”: “Transformation”,
+“icon”: “✨”,
+“color”: “#8B5CF6”,
+“tagline”: “Running small experiments to create new practice”,
+“desc”: (
+“You lean toward prototyping: testing ideas safely, learning from small failures, “
+“and iterating. This is how lasting change happens in complex environments. “
+“Transformation without clarity or coordination often stalls at the pilot stage.”
+),
+“high”: “Strong experimental mindset. Ensure pilots are resourced to scale when they succeed.”,
+“low”: “A contained 1-week experiment, even imperfect, often moves teams faster than extended planning.”,
+},
+}
+
+MICRO = {
+“I”: “Run a **15-min clarity huddle**: purpose, scope, and decision rights before each new project.”,
+“C”: “Create **one shared process or routine** this month (e.g., tracker, sync, or joint review).”,
+“R”: “Host a **sense-making pause**: what surprised us, what assumptions changed, what’s next?”,
+“T”: “Run a **1-week mini-experiment** with your team — test one improvement safely and debrief.”,
+}
+
+SCENARIOS = [
+{
+“title”: “Innovation vs Operations”,
+“context”: (
+“Your director asks your division to propose an innovative service idea for the next workplan. “
+“Teams are already stretched meeting KPIs, and staff worry innovation will become ‘extra work’. “
+“You sense resistance masked as politeness.”
+),
+“why”: “Boundary: efficiency vs exploration — delivering today while rethinking tomorrow.”,
+“opts”: [
+(“Clarify how innovation links to this year’s KPIs — what counts as ‘value add’.”, “I”),
+(“Set up a short ideas clinic with small cross-team groups.”, “C”),
+(“Ask the team what makes ‘innovation’ feel risky or unrealistic.”, “R”),
+(“Pilot one quick idea using existing tools; share results at division meeting.”, “T”),
+],
+},
+{
+“title”: “Hierarchy and Voice”,
+“context”: (
+“In meetings, junior officers rarely challenge senior views. “
+“After a policy rollout, feedback showed ground officers had anticipated the issues but kept silent. “
+“You want more upward feedback without breaking decorum.”
+),
+“why”: “Boundary: respect for hierarchy vs psychological safety.”,
+“opts”: [
+(“Clarify the decision structure — when input is invited vs when direction is fixed.”, “I”),
+(“Rotate who presents updates and invite Q&A before management speaks.”, “C”),
+(“Ask the team what would make it feel safe to raise tough points early.”, “R”),
+(“Create a ‘reverse-mentoring’ session where juniors critique a process constructively.”, “T”),
+],
+},
+{
+“title”: “Digital Transformation Fatigue”,
+“context”: (
+“Your agency’s new platform promises better citizen experience, but staff see it as another system to learn. “
+“Some quietly revert to old spreadsheets for ‘efficiency’.”
+),
+“why”: “Boundary: compliance vs ownership — transformation as something done *to* people or *with* them.”,
+“opts”: [
+(“Restate the ‘why’ — how digital tools connect to mission and workload.”, “I”),
+(“Appoint system champions in each team and track adoption pain points.”, “C”),
+(“Ask what success would look like for them — not just IT.”, “R”),
+(“Co-design one workflow together and measure time saved.”, “T”),
+],
+},
+{
+“title”: “Service Excellence vs Staff Well-being”,
+“context”: (
+“Complaints are rising; leadership pushes for faster responses. “
+“Your team is working late weekly and morale is sliding. “
+“Frontliners feel blamed for systemic issues.”
+),
+“why”: “Boundary: service quality vs human sustainability.”,
+“opts”: [
+(“Clarify service standards and where discretion is allowed.”, “I”),
+(“Redesign roster patterns and escalation channels with staff input.”, “C”),
+(“Facilitate a discussion: what’s within our control vs structural?”, “R”),
+(“Run a one-month pilot to test workload redistribution or automation ideas.”, “T”),
+],
+},
+{
+“title”: “Data Sharing Across Divisions”,
+“context”: (
+“Two departments need to share data for a joint dashboard. “
+“One cites PDPA and prefers email updates; the other needs real-time access for insights.”
+),
+“why”: “Boundary: caution vs collaboration.”,
+“opts”: [
+(“Clarify the data classification and approval lines.”, “I”),
+(“Draft a shared SOP and permissions matrix for both divisions.”, “C”),
+(“Hold a dialogue on fears about accountability and misuse.”, “R”),
+(“Prototype a secure shared folder with restricted fields.”, “T”),
+],
+},
+{
+“title”: “Hybrid Work Tensions”,
+“context”: (
+“Policy mandates three office days. Some staff live far away; others prefer in-person discussions. “
+“You see collaboration dipping but don’t want to micromanage attendance.”
+),
+“why”: “Boundary: autonomy vs cohesion.”,
+“opts”: [
+(“Clarify what activities truly require in-person presence.”, “I”),
+(“Create a team charter for hybrid norms everyone signs off.”, “C”),
+(“Ask what makes office days valuable or wasteful for each group.”, “R”),
+(“Test a rhythm: 2 in-person anchor days tied to core meetings.”, “T”),
+],
+},
+{
+“title”: “Performance Conversations”,
+“context”: (
+“During mid-year reviews, you notice some officers get defensive when feedback touches behaviour. “
+“You want growth, not grievance, but fear hurting relationships.”
+),
+“why”: “Boundary: candour vs care.”,
+“opts”: [
+(“Clarify the difference between developmental and evaluative feedback sessions.”, “I”),
+(“Use a structured template focusing on evidence and next steps.”, “C”),
+(“Ask them how they prefer to receive feedback and what support helps.”, “R”),
+(“Try a ‘feed-forward’ approach — peer-led coaching on one goal for 6 weeks.”, “T”),
+],
+},
+{
+“title”: “Procurement and Innovation”,
+“context”: (
+“A vendor proposes a creative solution but procurement templates can’t capture it easily. “
+“Your colleagues warn: ‘Just stick to the usual specs.’”
+),
+“why”: “Boundary: procedural compliance vs creative partnership.”,
+“opts”: [
+(“Clarify procurement intent — fairness, transparency, value-for-money.”, “I”),
+(“Invite Procurement to co-draft an outcome-based requirement with you.”, “C”),
+(“Ask why non-standard proposals feel risky; surface assumptions.”, “R”),
+(“Pilot a small proof-of-concept under a capped amount.”, “T”),
+],
+},
+{
+“title”: “Generational Gap”,
+“context”: (
+“You lead both long-serving officers and fresh hires. “
+“Meetings split between ‘we tried that before’ and ‘let’s disrupt everything.’”
+),
+“why”: “Boundary: experience vs reinvention.”,
+“opts”: [
+(“Clarify what must stay (core values) vs what can change.”, “I”),
+(“Pair senior and junior staff on one improvement project.”, “C”),
+(“Ask each group what they most respect and most misunderstand about the other.”, “R”),
+(“Create a ‘Then and Now’ showcase linking past lessons to current challenges.”, “T”),
+],
+},
+{
+“title”: “Citizen Feedback vs Policy Intent”,
+“context”: (
+“Your team pilots a digital form for faster applications. Citizens find it confusing and complain online. “
+“HQ insists the process is correct; frontline officers face frustration.”
+),
+“why”: “Boundary: policy integrity vs citizen experience.”,
+“opts”: [
+(“Clarify design intent and key constraints with HQ.”, “I”),
+(“Set up a feedback loop with daily frontline input to tweak messaging.”, “C”),
+(“Ask officers what patterns they observe behind citizen complaints.”, “R”),
+(“Prototype a quick explainer guide or video and test with users.”, “T”),
+],
+},
+{
+“title”: “Cross-Agency Project”,
+“context”: (
+“You co-lead a project with another agency. Both agree on purpose but interpret ‘impact’ differently. “
+“Deadlines slip amid polite emails.”
+),
+“why”: “Boundary: shared purpose vs divergent measures of success.”,
+“opts”: [
+(“Clarify the common goal and measurable outcomes in writing.”, “I”),
+(“Set up fortnightly syncs to align deliverables and flag tensions early.”, “C”),
+(“Ask what success means for each agency and why.”, “R”),
+(“Co-design a pilot deliverable to visualise joint success.”, “T”),
+],
+},
+{
+“title”: “Future Skills and Reskilling”,
+“context”: (
+“Your department received funds for skills upgrading, but few officers sign up. “
+“They say they’re too busy or don’t see relevance to their roles.”
+),
+“why”: “Boundary: immediate delivery vs long-term growth.”,
+“opts”: [
+(“Clarify what future skills the organisation truly prioritises.”, “I”),
+(“Build a team learning plan linking skills to actual projects.”, “C”),
+(“Ask staff what would make learning feel worthwhile or safe to try.”, “R”),
+(“Pair skills learning with a real mini-project to apply it immediately.”, “T”),
+],
+},
+]
+
+FOOTER = “*Inspired by boundary-crossing research (Akkerman & Bakker, 2011).*”
+
+# ─────────────────────────────────────────────────────────────────────────────
+
+# SCORING HELPERS
+
+# ─────────────────────────────────────────────────────────────────────────────
+
+def score_mechanisms(answers):
+s = {“I”: 0, “C”: 0, “R”: 0, “T”: 0}
+for i, a in answers.items():
+if a:
+for (opt, m) in SCENARIOS[i][“opts”]:
+if a == opt:
+s[m] += 1
+return s
+
+def ranked(scores, reverse=True):
+return [m for m, _ in sorted(scores.items(), key=lambda x: x[1], reverse=reverse)]
+
+def score_label(v, total=12):
+pct = v / total
+if pct >= 0.35:   return “Dominant”,  “#6D28D9”
+if pct >= 0.22:   return “Preferred”, “#2563EB”
+if pct >= 0.10:   return “Emerging”,  “#10B981”
+return “Latent”,  “#94A3B8”
+
+# ─────────────────────────────────────────────────────────────────────────────
+
+# CHARTS
+
+# ─────────────────────────────────────────────────────────────────────────────
+
+def make_radar(all_scores: list, labels: list, title=“Boundary Compass Profile”):
+keys = [“I”, “C”, “R”, “T”]
+names = [MECH_META[k][“name”] for k in keys]
+palette = [”#2563EB”, “#F59E0B”, “#10B981”, “#8B5CF6”, “#EF4444”]
+
+```
+fig = go.Figure()
+for idx, scores in enumerate(all_scores):
+    vals = [scores[k] for k in keys] + [scores[keys[0]]]
+    theta = names + [names[0]]
+    c = palette[idx % len(palette)]
+    r, g, b = int(c[1:3], 16), int(c[3:5], 16), int(c[5:7], 16)
+    fig.add_trace(go.Scatterpolar(
+        r=vals, theta=theta, fill="toself",
+        fillcolor=f"rgba({r},{g},{b},0.13)",
+        line=dict(color=c, width=2.5),
+        name=labels[idx],
+    ))
+
+fig.update_layout(
+    polar=dict(
+        bgcolor="rgba(248,250,252,0.9)",
+        radialaxis=dict(
+            visible=True, range=[0, 12],
+            tickvals=[3, 6, 9, 12],
+            tickfont=dict(size=10, color="#94A3B8"),
+            gridcolor="rgba(148,163,184,0.25)",
+            linecolor="rgba(148,163,184,0.25)",
+        ),
+        angularaxis=dict(
+            gridcolor="rgba(148,163,184,0.2)",
+            tickfont=dict(size=12, color="#334155"),
+        ),
+    ),
+    showlegend=len(all_scores) > 1,
+    legend=dict(font=dict(size=11)),
+    title=dict(text=title, font=dict(size=14, color="#1E293B", family="Georgia,serif"), x=0.5),
+    paper_bgcolor="white", plot_bgcolor="white",
+    height=380, margin=dict(t=60, b=10, l=20, r=20),
+)
+return fig
+```
+
+def make_bar(scores):
+keys = [“I”, “C”, “R”, “T”]
+colors = [MECH_META[k][“color”] for k in keys]
+names = [f”{MECH_META[k][‘icon’]} {MECH_META[k][‘name’]}” for k in keys]
+vals = [scores[k] for k in keys]
+
+```
+fig = go.Figure(go.Bar(
+    x=vals, y=names, orientation="h",
+    marker=dict(color=colors, line=dict(width=0)),
+    text=[str(v) for v in vals],
+    textposition="outside",
+    textfont=dict(size=13, color="#1E293B", family="DM Sans, sans-serif"),
+))
+fig.update_layout(
+    height=220,
+    xaxis=dict(range=[0, 14], showgrid=True, gridcolor="#E2E8F0",
+               tickfont=dict(color="#94A3B8", size=10), zeroline=False),
+    yaxis=dict(tickfont=dict(size=12, color="#334155")),
+    paper_bgcolor="white", plot_bgcolor="white",
+    margin=dict(t=10, b=10, l=10, r=40),
+    showlegend=False,
+)
+return fig
+```
+
+# ─────────────────────────────────────────────────────────────────────────────
+
+# HTML REPORT
+
+# ─────────────────────────────────────────────────────────────────────────────
+
+def html_report(name, scores, class_code=””):
+now = datetime.now().strftime(”%d %B %Y”)
+meta = name
+if class_code:
+meta += f”  ·  {class_code}”
+meta += f”  ·  {now}”
+
+```
+order = ranked(scores)
+rows = ""
+for k in order:
+    m = MECH_META[k]
+    v = scores[k]
+    label, lc = score_label(v)[:2]
+    pct = (v / 12) * 100
+    rows += f"""
+    <div style="background:white;border-radius:12px;padding:1.2rem 1.5rem;margin-bottom:1rem;
+                border-left:5px solid {m['color']};box-shadow:0 2px 8px rgba(0,0,0,0.07)">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
+        <span style="font-size:1rem;font-weight:700;color:#1E293B">{m['icon']} {m['name']}</span>
+        <span style="background:{lc};color:white;padding:3px 12px;border-radius:999px;
+                     font-size:0.73rem;font-weight:700;letter-spacing:0.5px">{label.upper()}</span>
+      </div>
+      <div style="font-size:0.8rem;color:#94A3B8;margin-bottom:8px;font-style:italic">{m['tagline']}</div>
+      <div style="font-size:1.9rem;font-weight:800;color:#1E293B;font-family:Georgia,serif;margin-bottom:6px">
+        {v}<span style="font-size:1rem;font-weight:400;color:#94A3B8"> / 12</span></div>
+      <div style="background:#E2E8F0;border-radius:999px;height:7px;margin-bottom:10px">
+        <div style="background:{m['color']};width:{pct:.0f}%;height:7px;border-radius:999px"></div></div>
+      <p style="margin:0;font-size:0.88rem;color:#475569;line-height:1.7">{m['desc']}</p>
+    </div>"""
+
+low = ranked(scores, reverse=False)[:2]
+stretch_rows = "".join(
+    f"<li style='margin-bottom:0.5rem'><strong>{MECH_META[k]['name']}</strong> — {MICRO[k]}</li>"
+    for k in low
+)
+
+return f"""<!DOCTYPE html>
+```
+
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Boundary Compass — {name}</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Lora:wght@400;700&family=DM+Sans:wght@400;500;600&display=swap');
+  body {{ font-family:'DM Sans',sans-serif; max-width:680px; margin:40px auto;
+          padding:0 24px; color:#1E293B; background:#F8FAFC; }}
+  .header {{ background:linear-gradient(135deg,#0F172A 0%,#1E3A8A 60%,#2563EB 100%);
+             border-radius:16px; padding:2.2rem 2rem; color:white; margin-bottom:1.5rem; }}
+  .header .label {{ font-size:0.62rem; letter-spacing:3px; text-transform:uppercase;
+                    opacity:0.6; margin-bottom:0.6rem; }}
+  .header h1 {{ margin:0; font-size:1.7rem; font-family:'Lora',Georgia,serif; font-weight:700; }}
+  .header .meta {{ margin:8px 0 0; opacity:0.8; font-size:0.88rem; }}
+  .section-title {{ font-family:'Lora',Georgia,serif; font-size:1.15rem; color:#1E293B;
+                    margin:1.5rem 0 0.75rem; }}
+  .stretch-box {{ background:#EFF6FF; border-left:4px solid #2563EB; border-radius:8px;
+                  padding:1.1rem 1.3rem; margin:1.25rem 0; }}
+  .stretch-box h3 {{ margin:0 0 0.5rem; color:#1D4ED8; font-size:0.88rem;
+                     text-transform:uppercase; letter-spacing:1px; }}
+  .stretch-box ul {{ margin:0; padding-left:1.2rem; color:#475569; font-size:0.9rem; line-height:1.8; }}
+  .footer {{ text-align:center; font-size:0.78rem; color:#CBD5E1; margin-top:2rem;
+             padding-top:1rem; border-top:1px solid #E2E8F0; }}
+</style>
+</head>
+<body>
+  <div class="header">
+    <div class="label">The Boundary Compass · Singapore Manager Edition · MBX / IAL-SUSS</div>
+    <h1>🧭 Boundary Mechanism Profile</h1>
+    <div class="meta">{meta}</div>
+  </div>
+  <p class="section-title">Your Mechanism Preferences</p>
+  {rows}
+  <div class="stretch-box">
+    <h3>📈 Stretch Practices This Month</h3>
+    <ul>{stretch_rows}</ul>
+  </div>
+  <div class="footer">
+    Inspired by boundary-crossing research (Akkerman &amp; Bakker, 2011). {now}
+  </div>
+</body>
+</html>"""
+
+# ─────────────────────────────────────────────────────────────────────────────
+
+# CSS
+
+# ─────────────────────────────────────────────────────────────────────────────
+
+def apply_css():
+st.markdown(”””
+
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,700;1,400&family=DM+Sans:wght@300;400;500;600;700&display=swap');
+
+html, body, [class*="css"] { font-family: 'DM Sans', sans-serif; }
+.main { background: #F8FAFC; }
+.block-container { padding-top: 1.5rem !important; max-width: 720px !important; padding-bottom: 3rem !important; }
+#MainMenu, header, footer { visibility: hidden; }
+
+/* Hero */
+.hero {
+    background: linear-gradient(135deg, #0F172A 0%, #1E3A8A 55%, #2563EB 100%);
+    border-radius: 18px; padding: 2.6rem 2.2rem; color: white;
+    margin-bottom: 1.5rem; text-align: center; position: relative; overflow: hidden;
+}
+.hero::before {
+    content: ''; position: absolute; top: -60%; right: -15%;
+    width: 320px; height: 320px; background: rgba(255,255,255,0.035); border-radius: 50%;
+}
+.hero-label { font-size:0.62rem; letter-spacing:3px; text-transform:uppercase; opacity:0.6; margin-bottom:0.8rem; }
+.hero h1 {
+    font-family: 'Lora', Georgia, serif; font-size: 2rem; font-weight: 700;
+    margin: 0; letter-spacing: -0.3px; line-height: 1.2;
+}
+.hero p { font-size: 0.92rem; opacity: 0.8; margin: 0.85rem auto 0; line-height: 1.65; max-width: 500px; }
+
+/* Cards */
+.card {
+    background: white; border-radius: 14px; padding: 1.3rem 1.5rem;
+    margin-bottom: 1rem; box-shadow: 0 1px 6px rgba(15,23,42,0.07);
+    border: 1px solid rgba(226,232,240,0.8);
+}
+
+/* Scenario */
+.sc-title { font-family:'Lora',Georgia,serif; font-size:1.15rem; font-weight:700; color:#1E293B; margin-bottom:0.4rem; }
+.sc-context { font-size:0.91rem; color:#475569; line-height:1.7; margin-bottom:0; }
+.sc-why { font-size:0.83rem; color:#64748B; font-style:italic; }
+
+/* Progress */
+.prog-wrap { margin-bottom:1.25rem; }
+.prog-label { display:flex; justify-content:space-between; font-size:0.78rem; color:#64748B; margin-bottom:5px; }
+.prog-bg { background:#E2E8F0; border-radius:999px; height:5px; }
+.prog-fill { height:5px; border-radius:999px; background:linear-gradient(90deg,#1E40AF,#3B82F6); }
+
+/* Result cards */
+.r-card {
+    background:white; border-radius:14px; padding:1.2rem 1.5rem;
+    margin-bottom:0.85rem; box-shadow:0 2px 8px rgba(15,23,42,0.07);
+    border:1px solid rgba(226,232,240,0.8);
+}
+.r-header { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:0.5rem; }
+.r-name { font-weight:700; font-size:1rem; color:#1E293B; }
+.r-tagline { font-size:0.78rem; color:#94A3B8; margin-top:3px; font-style:italic; }
+.r-badge { color:white; padding:3px 12px; border-radius:999px; font-size:0.71rem; font-weight:700; letter-spacing:0.5px; white-space:nowrap; }
+.r-score { font-family:'Lora',Georgia,serif; font-size:2.1rem; font-weight:700; color:#1E293B; margin-bottom:5px; line-height:1; }
+.r-score span { font-family:'DM Sans',sans-serif; font-size:1rem; font-weight:400; color:#94A3B8; }
+.r-bar-bg { background:#E2E8F0; border-radius:999px; height:6px; margin-bottom:0.85rem; }
+.r-bar-fill { height:6px; border-radius:999px; }
+.r-text { font-size:0.88rem; color:#475569; line-height:1.75; margin:0; }
+
+/* Stretch box */
+.stretch-box {
+    background:#EFF6FF; border-left:4px solid #2563EB; border-radius:10px;
+    padding:1.1rem 1.4rem; margin:1.25rem 0;
+}
+.stretch-title { font-weight:700; color:#1D4ED8; font-size:0.85rem; text-transform:uppercase; letter-spacing:0.8px; margin-bottom:0.5rem; }
+
+/* Welcome submitted */
+.confirm-box {
+    background:linear-gradient(135deg,#064E3B,#059669);
+    border-radius:14px; padding:1.5rem 2rem; color:white; text-align:center; margin:1rem 0;
+}
+.confirm-box h3 { margin:0 0 0.4rem; font-size:1.1rem; }
+.confirm-box p { margin:0; opacity:0.85; font-size:0.88rem; }
+
+/* Buttons */
+.stButton > button {
+    background:linear-gradient(135deg,#1E3A8A,#2563EB) !important;
+    color:white !important; border:none !important; border-radius:10px !important;
+    padding:0.62rem 1.5rem !important; font-weight:600 !important; font-size:0.93rem !important;
+    width:100% !important; font-family:'DM Sans',sans-serif !important;
+    transition:all 0.2s !important;
+}
+.stButton > button:hover { transform:translateY(-1px) !important; box-shadow:0 6px 18px rgba(37,99,235,0.3) !important; }
+
+/* Radio */
+div[data-testid="stRadio"] > label { display:none !important; }
+div[data-testid="stRadio"] div[role="radiogroup"] {
+    flex-direction:column !important; gap:0.5rem !important;
+}
+div[data-testid="stRadio"] div[role="radiogroup"] label {
+    background:#F8FAFC; border-radius:10px; padding:0.75rem 1rem !important;
+    font-size:0.9rem !important; color:#334155 !important;
+    border:1.5px solid #E2E8F0; transition:all 0.15s; cursor:pointer; width:100%;
+}
+div[data-testid="stRadio"] div[role="radiogroup"] label:hover { background:#EFF6FF; border-color:#93C5FD; }
+div[data-testid="stRadio"] div[role="radiogroup"] label:has(input:checked) {
+    background:#EFF6FF; border-color:#2563EB; color:#1D4ED8 !important; font-weight:600;
+}
+
+/* Text input */
+.stTextInput > div > div > input {
+    border-radius:10px !important; border:1.5px solid #E2E8F0 !important;
+    font-family:'DM Sans',sans-serif !important; font-size:0.95rem !important;
+    padding:0.6rem 1rem !important; background:white !important;
+}
+.stTextInput > div > div > input:focus { border-color:#2563EB !important; box-shadow:0 0 0 3px rgba(37,99,235,0.1) !important; }
+
+/* Sidebar */
+section[data-testid="stSidebar"] { background:#0F172A !important; }
+section[data-testid="stSidebar"] * { color:white !important; }
+section[data-testid="stSidebar"] .stTextInput > div > div > input {
+    background:rgba(255,255,255,0.1) !important;
+    border-color:rgba(255,255,255,0.2) !important; color:white !important;
+}
+
+/* Expander */
+details { border-radius:10px !important; background:white !important; border:1px solid #E2E8F0 !important; }
+</style>
+
+“””, unsafe_allow_html=True)
+
+# ─────────────────────────────────────────────────────────────────────────────
+
+# SESSION STATE
+
+# ─────────────────────────────────────────────────────────────────────────────
+
+def init_state():
+defaults = {
+“page”: “welcome”,
+“q_idx”: 0,
+“order”: None,
+“answers”: {},
+“name”: “”,
+“class_code”: “”,
+“submitted”: False,
+“fac_mode”: False,
+}
+for k, v in defaults.items():
+if k not in st.session_state:
+st.session_state[k] = v
+
+# ─────────────────────────────────────────────────────────────────────────────
+
+# SIDEBAR — FACILITATOR LOGIN
+
+# ─────────────────────────────────────────────────────────────────────────────
+
+def facilitator_sidebar():
+with st.sidebar:
+st.markdown(”### 🔒 Facilitator Access”)
+pw = st.text_input(“Password”, type=“password”, key=“fac_pw”, label_visibility=“collapsed”)
+if st.button(“Enter Facilitator View”, key=“fac_login”):
+if pw == FACILITATOR_PASSWORD:
+st.session_state.fac_mode = True
+st.rerun()
+else:
+st.error(“Incorrect password”)
+if st.session_state.fac_mode:
+st.success(“✅ Facilitator mode active”)
+if st.button(“Exit”):
+st.session_state.fac_mode = False
+st.rerun()
+st.markdown(”—”)
+store = get_class_store()
+if store and st.button(“🗑 Clear All Results”):
+store.clear()
+st.rerun()
+
+# ─────────────────────────────────────────────────────────────────────────────
+
+# FACILITATOR DASHBOARD
+
+# ─────────────────────────────────────────────────────────────────────────────
+
+def show_facilitator():
+store = get_class_store()
+st.markdown(”””
+<div class="hero" style="text-align:left;padding:1.8rem 2rem">
+<div class="hero-label">Facilitator Dashboard · MBX</div>
+<h1 style="font-size:1.55rem">🎓 Class Compass Results</h1>
+</div>”””, unsafe_allow_html=True)
+
+```
+if not store:
+    st.info("📭 No submissions yet. Ask participants to submit once they complete the quiz.")
+    return
+
+st.metric("Participants submitted", len(store))
+keys = ["I", "C", "R", "T"]
+
+all_scores = [r["scores"] for r in store]
+avg = {k: round(sum(s[k] for s in all_scores) / len(all_scores), 1) for k in keys}
+
+col1, col2 = st.columns(2)
+with col1:
+    st.plotly_chart(make_radar([avg], ["Class Average"], "Class Average"), use_container_width=True)
+with col2:
+    labels = [r["name"].split()[0] for r in store]
+    st.plotly_chart(make_radar(all_scores, labels, "All Participants"), use_container_width=True)
+
+# Table
+st.markdown("#### Individual Scores")
+rows = []
+for r in store:
+    row = {"Name": r["name"], "Time": r["timestamp"]}
+    for k in keys:
+        row[MECH_META[k]["name"]] = r["scores"][k]
+    row["Top Move"] = MECH_META[ranked(r["scores"])[0]]["name"]
+    row["Class Code"] = r.get("class_code", "—")
+    rows.append(row)
+df = pd.DataFrame(rows)
+st.dataframe(df, use_container_width=True, hide_index=True)
+csv = df.to_csv(index=False)
+st.download_button("📥 Download CSV", data=csv,
+                   file_name=f"compass_results_{datetime.now().strftime('%Y%m%d_%H%M')}.csv",
+                   mime="text/csv")
+
+# Debrief starters
+st.markdown("---")
+st.markdown("#### 💬 Debrief Discussion Starters")
+dom = ranked(avg)[0]
+lat = ranked(avg, reverse=False)[0]
+st.markdown(f"""
+<div style="background:#F0FDF4;border-left:4px solid #10B981;border-radius:10px;
+            padding:1rem 1.2rem;margin-bottom:0.75rem">
+  <strong>Collective dominant move: {MECH_META[dom]['icon']} {MECH_META[dom]['name']} ({avg[dom]:.1f}/12)</strong><br>
+  <span style="font-size:0.9rem;color:#475569">What does it say about your collective leadership culture
+  that this is the move most of you reach for first?</span>
+</div>
+<div style="background:#FFF7ED;border-left:4px solid #F59E0B;border-radius:10px;
+            padding:1rem 1.2rem;margin-bottom:0.75rem">
+  <strong>Shared latent move: {MECH_META[lat]['icon']} {MECH_META[lat]['name']} ({avg[lat]:.1f}/12)</strong><br>
+  <span style="font-size:0.9rem;color:#475569">What structural or cultural factors in Singapore public sector 
+  work might make this move feel risky or undervalued?</span>
+</div>
+<div style="background:#EFF6FF;border-left:4px solid #2563EB;border-radius:10px;
+            padding:1rem 1.2rem">
+  <strong>Profile diversity</strong><br>
+  <span style="font-size:0.9rem;color:#475569">Find someone whose top move differs from yours. 
+  Pair up: share one scenario where your different instincts would complement each other.</span>
+</div>""", unsafe_allow_html=True)
+```
+
+# ─────────────────────────────────────────────────────────────────────────────
+
+# WELCOME PAGE
+
+# ─────────────────────────────────────────────────────────────────────────────
+
+def show_welcome():
+st.markdown(”””
+<div class="hero">
+<div class="hero-label">MBX · IAL/SUSS · Supporting Development</div>
+<div style="font-size:3rem;margin-bottom:0.6rem">🧭</div>
+<h1>The Boundary Compass</h1>
+<p>Reflect on how you lead change, balance priorities, and enable future readiness
+— through 12 real Singapore manager scenarios.</p>
+</div>”””, unsafe_allow_html=True)
+
+```
+with st.expander("ℹ️ How this works", expanded=False):
+    st.markdown("""
+```
+
+In Singapore workplaces, middle managers sit **at the boundary** — between strategy and execution,
+stability and change, compliance and innovation.
+
+This tool surfaces which of four **boundary-crossing mechanisms** you tend to reach for:
+
+| |Mechanism         |What you do                                     |
+|-|------------------|------------------------------------------------|
+|🎯|**Identification**|Clarify purpose, constraints, and direction     |
+|🤝|**Coordination**  |Build shared routines, plans, and accountability|
+|🪞|**Reflection**    |Pause to understand perspectives and assumptions|
+|✨|**Transformation**|Run small experiments to create new practice    |
+
+Each scenario is drawn from real Singapore public sector contexts.  
+Choose what you’d **most likely do** — there are no right answers.
+
+*Inspired by Akkerman & Bakker (2011).*
+“””)
+
+```
+st.markdown("<div style='height:0.4rem'></div>", unsafe_allow_html=True)
+name_val = st.text_input("Your name", value=st.session_state.name,
+                          placeholder="e.g. Wei Lin", label_visibility="visible")
+code_val = st.text_input("Class code (from your facilitator)",
+                          value=st.session_state.class_code,
+                          placeholder="e.g. MBX-APR2026", label_visibility="visible")
+
+st.markdown("""
+<div style="display:flex;gap:0.75rem;margin:1rem 0;flex-wrap:wrap">
+  <div style="background:white;border-radius:10px;padding:0.7rem 1rem;flex:1;min-width:110px;
+              box-shadow:0 1px 4px rgba(0,0,0,0.07);text-align:center;border:1px solid #E2E8F0">
+    <div style="font-size:1.3rem;margin-bottom:2px">📋</div>
+    <div style="font-size:0.75rem;font-weight:600;color:#475569">12 scenarios</div>
+  </div>
+  <div style="background:white;border-radius:10px;padding:0.7rem 1rem;flex:1;min-width:110px;
+              box-shadow:0 1px 4px rgba(0,0,0,0.07);text-align:center;border:1px solid #E2E8F0">
+    <div style="font-size:1.3rem;margin-bottom:2px">⏱</div>
+    <div style="font-size:0.75rem;font-weight:600;color:#475569">~10 minutes</div>
+  </div>
+  <div style="background:white;border-radius:10px;padding:0.7rem 1rem;flex:1;min-width:110px;
+              box-shadow:0 1px 4px rgba(0,0,0,0.07);text-align:center;border:1px solid #E2E8F0">
+    <div style="font-size:1.3rem;margin-bottom:2px">📄</div>
+    <div style="font-size:0.75rem;font-weight:600;color:#475569">Download report</div>
+  </div>
+</div>""", unsafe_allow_html=True)
+
+if st.button("Begin Scenarios →"):
+    if not name_val.strip():
+        st.warning("Please enter your name to continue.")
+    else:
+        st.session_state.name = name_val.strip()
+        st.session_state.class_code = code_val.strip()
+        order = list(range(len(SCENARIOS)))
+        random.shuffle(order)
+        st.session_state.order = order
+        st.session_state.answers = {}
+        st.session_state.q_idx = 0
+        st.session_state.page = "quiz"
+        st.rerun()
+```
+
+# ─────────────────────────────────────────────────────────────────────────────
+
+# QUIZ PAGE
+
+# ─────────────────────────────────────────────────────────────────────────────
+
+def show_quiz():
+idx = st.session_state.q_idx
+total = len(SCENARIOS)
+sc_i = st.session_state.order[idx]
+sc = SCENARIOS[sc_i]
+
+```
+pct = idx / total
+st.markdown(f"""
+<div class="prog-wrap">
+  <div class="prog-label">
+    <span>Scenario {idx + 1} of {total}</span>
+    <span>{int(pct * 100)}% complete</span>
+  </div>
+  <div class="prog-bg"><div class="prog-fill" style="width:{pct*100:.0f}%"></div></div>
+</div>""", unsafe_allow_html=True)
+
+st.markdown(f"""
+<div class="card">
+  <div class="sc-title">{sc['title']}</div>
+  <p class="sc-context">{sc['context']}</p>
+</div>""", unsafe_allow_html=True)
+
+with st.expander("🔍 Why is this a boundary moment?"):
+    st.markdown(f"<span class='sc-why'>{sc['why']}</span>", unsafe_allow_html=True)
+
+opts = [o for (o, _) in sc["opts"]]
+prev = st.session_state.answers.get(sc_i)
+idx_default = opts.index(prev) if prev in opts else 0
+
+choice = st.radio("Your most likely move:", opts, index=idx_default,
+                  label_visibility="collapsed", key=f"q_{sc_i}")
+
+is_last = idx == total - 1
+col1, col2 = st.columns(2)
+with col1:
+    if st.button("← Back", disabled=(idx == 0)):
+        st.session_state.answers[sc_i] = choice
+        st.session_state.q_idx -= 1
+        st.rerun()
+with col2:
+    label = "See My Results →" if is_last else "Next →"
+    if st.button(label):
+        st.session_state.answers[sc_i] = choice
+        if is_last:
+            st.session_state.page = "results"
+        else:
+            st.session_state.q_idx += 1
+        st.rerun()
+```
+
+# ─────────────────────────────────────────────────────────────────────────────
+
+# RESULTS PAGE
+
+# ─────────────────────────────────────────────────────────────────────────────
+
+def show_results():
+scores = score_mechanisms(st.session_state.answers)
+name = st.session_state.name
+order = ranked(scores)
+
+```
+st.markdown(f"""
+<div class="hero" style="padding:2rem 2.2rem;text-align:left">
+  <div class="hero-label">Your Profile · MBX / IAL-SUSS</div>
+  <h1 style="font-size:1.5rem">🧭 Boundary Compass Profile</h1>
+  <p style="margin:6px 0 0;font-size:0.88rem">{name}</p>
+</div>""", unsafe_allow_html=True)
+
+# Charts
+col1, col2 = st.columns(2)
+with col1:
+    st.plotly_chart(make_radar([scores], [name]), use_container_width=True)
+with col2:
+    st.plotly_chart(make_bar(scores), use_container_width=True)
+
+# Score cards
+st.markdown("<h3 style='font-family:Lora,Georgia,serif;color:#1E293B;margin-bottom:0.75rem'>"
+            "Mechanism Breakdown</h3>", unsafe_allow_html=True)
+
+for k in order:
+    m = MECH_META[k]
+    v = scores[k]
+    label, lc = score_label(v)[:2]
+    pct = (v / 12) * 100
+    text = m["high"] if v >= 4 else m["low"]
+
+    st.markdown(f"""
+    <div class="r-card" style="border-left:5px solid {m['color']}">
+      <div class="r-header">
+        <div>
+          <div class="r-name">{m['icon']} {m['name']}</div>
+          <div class="r-tagline">{m['tagline']}</div>
+        </div>
+        <span class="r-badge" style="background:{lc}">{label.upper()}</span>
+      </div>
+      <div class="r-score">{v}<span> / 12</span></div>
+      <div class="r-bar-bg">
+        <div class="r-bar-fill" style="background:{m['color']};width:{pct:.0f}%"></div>
+      </div>
+      <p class="r-text">{text}</p>
+    </div>""", unsafe_allow_html=True)
+
+# Stretch
+low = order[-2:]
+stretch_items = "".join(
+    f"<li style='margin-bottom:0.6rem'><strong>{MECH_META[k]['name']}</strong> — {MICRO[k]}</li>"
+    for k in low
+)
+st.markdown(f"""
+<div class="stretch-box">
+  <div class="stretch-title">📈 Stretch Practices This Month</div>
+  <ul style="margin:0;padding-left:1.2rem;color:#475569;font-size:0.9rem;line-height:1.8">
+    {stretch_items}
+  </ul>
+</div>""", unsafe_allow_html=True)
+
+st.markdown("---")
+
+# Download
+report = html_report(name, scores, st.session_state.class_code)
+st.download_button(
+    "📄 Download My Report (open → Print → Save as PDF)",
+    data=report,
+    file_name=f"BoundaryCompass_{name.replace(' ', '_')}.html",
+    mime="text/html",
+    use_container_width=True,
+)
+
+st.markdown("<div style='height:0.4rem'></div>", unsafe_allow_html=True)
+
+# Submit to class
+if not st.session_state.submitted:
+    st.markdown("""
+    <div class="card">
+      <div style="font-weight:700;color:#1E293B;margin-bottom:0.4rem">📤 Submit to Class Dashboard</div>
+      <p style="margin:0;font-size:0.87rem;color:#475569;line-height:1.65">
+        Share your mechanism scores with the facilitator's live dashboard for class debrief. 
+        Only your name and four scores are shared — your individual scenario choices stay private.
+      </p>
+    </div>""", unsafe_allow_html=True)
+    if st.button("✅ Submit to Class"):
+        store = get_class_store()
+        store.append({
+            "name": name,
+            "class_code": st.session_state.class_code,
+            "scores": scores,
+            "timestamp": datetime.now().strftime("%H:%M"),
+        })
+        st.session_state.submitted = True
+        st.rerun()
+else:
+    st.markdown("""
+    <div class="confirm-box">
+      <h3>✅ Submitted to Class Dashboard</h3>
+      <p>Your facilitator can see your profile in the live class overview.</p>
+    </div>""", unsafe_allow_html=True)
+
+st.markdown("<div style='height:0.4rem'></div>", unsafe_allow_html=True)
+
+if st.button("🔄 Retake"):
+    for k in ["page", "q_idx", "order", "answers", "submitted"]:
+        st.session_state.pop(k, None)
+    st.rerun()
+
+st.markdown(f"<p style='text-align:center;color:#CBD5E1;font-size:0.78rem;margin-top:1rem'>{FOOTER}</p>",
+            unsafe_allow_html=True)
+```
+
+# ─────────────────────────────────────────────────────────────────────────────
+
+# MAIN
+
+# ─────────────────────────────────────────────────────────────────────────────
+
+def main():
+apply_css()
+init_state()
+facilitator_sidebar()
+
+```
+if st.session_state.fac_mode:
+    show_facilitator()
+elif st.session_state.page == "welcome":
+    show_welcome()
+elif st.session_state.page == "quiz":
+    show_quiz()
+elif st.session_state.page == "results":
+    show_results()
+```
+
+if **name** == “**main**”:
+main()
