@@ -1,1015 +1,934 @@
-“””
-The Boundary Compass — Singapore Middle Manager Edition
-Enhanced version for MBX Supporting Development Class
+"""
+MBX Boundary Crossing Diagnostic — Enhanced Version
+Master in Boundary-Crossing Learning and Leadership | IAL/SUSS
 
-Enhancements over original:
-• Polished UI with custom CSS (Lora + DM Sans, navy/amber palette)
-• Welcome screen with name capture (for report + class collation)
-• Radar chart + horizontal bar side-by-side on results
-• Mechanism detail cards with tier label + personalised narrative
-• HTML report download (printable / save-as-PDF via browser)
-• Submit to Class — shared in-memory store (st.cache_resource)
-• Facilitator Dashboard: aggregate radar, table, CSV export, debrief prompts
-• Password-protected sidebar facilitator login
-“””
+Features:
+  • Polished UI with custom CSS (academic-professional tone)
+  • 4-dimension, 20-question diagnostic (Akkerman & Bakker framework)
+  • Step-by-step question flow (one dimension per screen)
+  • Radar chart + dimension score cards with developmental feedback
+  • HTML report download (printable / save-as-PDF)
+  • Optional submit-to-class (shared in-memory store via st.cache_resource)
+  • Facilitator dashboard: aggregate radar, participant table, CSV export
+"""
 
-import random
 import streamlit as st
 import plotly.graph_objects as go
-from plotly.subplots import make_subplots
 import pandas as pd
 from datetime import datetime
 
 # ─────────────────────────────────────────────────────────────────────────────
-
-# PAGE CONFIG
-
+#  PAGE CONFIG  (must be first Streamlit call)
 # ─────────────────────────────────────────────────────────────────────────────
-
 st.set_page_config(
-page_title=“The Boundary Compass | Singapore Manager Edition”,
-page_icon=“🧭”,
-layout=“centered”,
-initial_sidebar_state=“collapsed”,
+    page_title="Boundary Crossing Diagnostic | MBX",
+    page_icon="🔀",
+    layout="centered",
+    initial_sidebar_state="collapsed",
 )
 
-FACILITATOR_PASSWORD = “mbx2026”   # ← change before class
+FACILITATOR_PASSWORD = "mbx2026"   # ← change before class
+
 
 # ─────────────────────────────────────────────────────────────────────────────
-
-# SHARED CLASS STORE
-
+#  SHARED CLASS STORE
+#  st.cache_resource persists for the lifetime of the server process.
+#  Everyone on the same Streamlit instance shares this list — ideal for a
+#  classroom session. It resets only if the app restarts.
 # ─────────────────────────────────────────────────────────────────────────────
-
 @st.cache_resource
 def get_class_store():
-return []
+    return []
+
 
 # ─────────────────────────────────────────────────────────────────────────────
-
-# CONTENT
-
+#  DIAGNOSTIC CONTENT
 # ─────────────────────────────────────────────────────────────────────────────
-
-MECH_META = {
-“I”: {
-“name”: “Identification”,
-“icon”: “🎯”,
-“color”: “#2563EB”,
-“tagline”: “Clarifying purpose, constraints, and direction”,
-“desc”: (
-“You tend to start by naming what’s true — the goals, the constraints, “
-“the roles. This is foundational work that prevents misalignment down the track. “
-“Overused, it can slow action; underused, it creates ambiguity that compounds later.”
-),
-“high”: “Strong at framing and focus. Watch for over-clarifying before others are ready to act.”,
-“low”: “Consider slowing down to name purpose and decision rights earlier — it reduces rework.”,
-},
-“C”: {
-“name”: “Coordination”,
-“icon”: “🤝”,
-“color”: “#10B981”,
-“tagline”: “Building shared routines, plans, and accountability”,
-“desc”: (
-“You favour building structure: the routines, trackers, syncs, and handoffs “
-“that make joint work reliable. This creates predictability. “
-“Watch for coordination becoming bureaucracy when trust is what’s actually missing.”
-),
-“high”: “Strong infrastructure builder. Check whether all those structures are actually being used.”,
-“low”: “Small shared artefacts — a tracker, a one-pager, a standing sync — can unlock coordination quickly.”,
-},
-“R”: {
-“name”: “Reflection”,
-“icon”: “🪞”,
-“color”: “#F59E0B”,
-“tagline”: “Pausing to understand perspectives and assumptions”,
-“desc”: (
-“You tend to create space for sense-making: asking what others think, “
-“surfacing assumptions, understanding the ‘why behind the what’. “
-“This builds trust and prevents solutions that miss the real problem.”
-),
-“high”: “Strong at building shared understanding. Pair reflection with action to avoid analysis paralysis.”,
-“low”: “A short ‘assumption audit’ before major decisions could significantly improve collective buy-in.”,
-},
-“T”: {
-“name”: “Transformation”,
-“icon”: “✨”,
-“color”: “#8B5CF6”,
-“tagline”: “Running small experiments to create new practice”,
-“desc”: (
-“You lean toward prototyping: testing ideas safely, learning from small failures, “
-“and iterating. This is how lasting change happens in complex environments. “
-“Transformation without clarity or coordination often stalls at the pilot stage.”
-),
-“high”: “Strong experimental mindset. Ensure pilots are resourced to scale when they succeed.”,
-“low”: “A contained 1-week experiment, even imperfect, often moves teams faster than extended planning.”,
-},
-}
-
-MICRO = {
-“I”: “Run a **15-min clarity huddle**: purpose, scope, and decision rights before each new project.”,
-“C”: “Create **one shared process or routine** this month (e.g., tracker, sync, or joint review).”,
-“R”: “Host a **sense-making pause**: what surprised us, what assumptions changed, what’s next?”,
-“T”: “Run a **1-week mini-experiment** with your team — test one improvement safely and debrief.”,
-}
-
-SCENARIOS = [
-{
-“title”: “Innovation vs Operations”,
-“context”: (
-“Your director asks your division to propose an innovative service idea for the next workplan. “
-“Teams are already stretched meeting KPIs, and staff worry innovation will become ‘extra work’. “
-“You sense resistance masked as politeness.”
-),
-“why”: “Boundary: efficiency vs exploration — delivering today while rethinking tomorrow.”,
-“opts”: [
-(“Clarify how innovation links to this year’s KPIs — what counts as ‘value add’.”, “I”),
-(“Set up a short ideas clinic with small cross-team groups.”, “C”),
-(“Ask the team what makes ‘innovation’ feel risky or unrealistic.”, “R”),
-(“Pilot one quick idea using existing tools; share results at division meeting.”, “T”),
-],
-},
-{
-“title”: “Hierarchy and Voice”,
-“context”: (
-“In meetings, junior officers rarely challenge senior views. “
-“After a policy rollout, feedback showed ground officers had anticipated the issues but kept silent. “
-“You want more upward feedback without breaking decorum.”
-),
-“why”: “Boundary: respect for hierarchy vs psychological safety.”,
-“opts”: [
-(“Clarify the decision structure — when input is invited vs when direction is fixed.”, “I”),
-(“Rotate who presents updates and invite Q&A before management speaks.”, “C”),
-(“Ask the team what would make it feel safe to raise tough points early.”, “R”),
-(“Create a ‘reverse-mentoring’ session where juniors critique a process constructively.”, “T”),
-],
-},
-{
-“title”: “Digital Transformation Fatigue”,
-“context”: (
-“Your agency’s new platform promises better citizen experience, but staff see it as another system to learn. “
-“Some quietly revert to old spreadsheets for ‘efficiency’.”
-),
-“why”: “Boundary: compliance vs ownership — transformation as something done *to* people or *with* them.”,
-“opts”: [
-(“Restate the ‘why’ — how digital tools connect to mission and workload.”, “I”),
-(“Appoint system champions in each team and track adoption pain points.”, “C”),
-(“Ask what success would look like for them — not just IT.”, “R”),
-(“Co-design one workflow together and measure time saved.”, “T”),
-],
-},
-{
-“title”: “Service Excellence vs Staff Well-being”,
-“context”: (
-“Complaints are rising; leadership pushes for faster responses. “
-“Your team is working late weekly and morale is sliding. “
-“Frontliners feel blamed for systemic issues.”
-),
-“why”: “Boundary: service quality vs human sustainability.”,
-“opts”: [
-(“Clarify service standards and where discretion is allowed.”, “I”),
-(“Redesign roster patterns and escalation channels with staff input.”, “C”),
-(“Facilitate a discussion: what’s within our control vs structural?”, “R”),
-(“Run a one-month pilot to test workload redistribution or automation ideas.”, “T”),
-],
-},
-{
-“title”: “Data Sharing Across Divisions”,
-“context”: (
-“Two departments need to share data for a joint dashboard. “
-“One cites PDPA and prefers email updates; the other needs real-time access for insights.”
-),
-“why”: “Boundary: caution vs collaboration.”,
-“opts”: [
-(“Clarify the data classification and approval lines.”, “I”),
-(“Draft a shared SOP and permissions matrix for both divisions.”, “C”),
-(“Hold a dialogue on fears about accountability and misuse.”, “R”),
-(“Prototype a secure shared folder with restricted fields.”, “T”),
-],
-},
-{
-“title”: “Hybrid Work Tensions”,
-“context”: (
-“Policy mandates three office days. Some staff live far away; others prefer in-person discussions. “
-“You see collaboration dipping but don’t want to micromanage attendance.”
-),
-“why”: “Boundary: autonomy vs cohesion.”,
-“opts”: [
-(“Clarify what activities truly require in-person presence.”, “I”),
-(“Create a team charter for hybrid norms everyone signs off.”, “C”),
-(“Ask what makes office days valuable or wasteful for each group.”, “R”),
-(“Test a rhythm: 2 in-person anchor days tied to core meetings.”, “T”),
-],
-},
-{
-“title”: “Performance Conversations”,
-“context”: (
-“During mid-year reviews, you notice some officers get defensive when feedback touches behaviour. “
-“You want growth, not grievance, but fear hurting relationships.”
-),
-“why”: “Boundary: candour vs care.”,
-“opts”: [
-(“Clarify the difference between developmental and evaluative feedback sessions.”, “I”),
-(“Use a structured template focusing on evidence and next steps.”, “C”),
-(“Ask them how they prefer to receive feedback and what support helps.”, “R”),
-(“Try a ‘feed-forward’ approach — peer-led coaching on one goal for 6 weeks.”, “T”),
-],
-},
-{
-“title”: “Procurement and Innovation”,
-“context”: (
-“A vendor proposes a creative solution but procurement templates can’t capture it easily. “
-“Your colleagues warn: ‘Just stick to the usual specs.’”
-),
-“why”: “Boundary: procedural compliance vs creative partnership.”,
-“opts”: [
-(“Clarify procurement intent — fairness, transparency, value-for-money.”, “I”),
-(“Invite Procurement to co-draft an outcome-based requirement with you.”, “C”),
-(“Ask why non-standard proposals feel risky; surface assumptions.”, “R”),
-(“Pilot a small proof-of-concept under a capped amount.”, “T”),
-],
-},
-{
-“title”: “Generational Gap”,
-“context”: (
-“You lead both long-serving officers and fresh hires. “
-“Meetings split between ‘we tried that before’ and ‘let’s disrupt everything.’”
-),
-“why”: “Boundary: experience vs reinvention.”,
-“opts”: [
-(“Clarify what must stay (core values) vs what can change.”, “I”),
-(“Pair senior and junior staff on one improvement project.”, “C”),
-(“Ask each group what they most respect and most misunderstand about the other.”, “R”),
-(“Create a ‘Then and Now’ showcase linking past lessons to current challenges.”, “T”),
-],
-},
-{
-“title”: “Citizen Feedback vs Policy Intent”,
-“context”: (
-“Your team pilots a digital form for faster applications. Citizens find it confusing and complain online. “
-“HQ insists the process is correct; frontline officers face frustration.”
-),
-“why”: “Boundary: policy integrity vs citizen experience.”,
-“opts”: [
-(“Clarify design intent and key constraints with HQ.”, “I”),
-(“Set up a feedback loop with daily frontline input to tweak messaging.”, “C”),
-(“Ask officers what patterns they observe behind citizen complaints.”, “R”),
-(“Prototype a quick explainer guide or video and test with users.”, “T”),
-],
-},
-{
-“title”: “Cross-Agency Project”,
-“context”: (
-“You co-lead a project with another agency. Both agree on purpose but interpret ‘impact’ differently. “
-“Deadlines slip amid polite emails.”
-),
-“why”: “Boundary: shared purpose vs divergent measures of success.”,
-“opts”: [
-(“Clarify the common goal and measurable outcomes in writing.”, “I”),
-(“Set up fortnightly syncs to align deliverables and flag tensions early.”, “C”),
-(“Ask what success means for each agency and why.”, “R”),
-(“Co-design a pilot deliverable to visualise joint success.”, “T”),
-],
-},
-{
-“title”: “Future Skills and Reskilling”,
-“context”: (
-“Your department received funds for skills upgrading, but few officers sign up. “
-“They say they’re too busy or don’t see relevance to their roles.”
-),
-“why”: “Boundary: immediate delivery vs long-term growth.”,
-“opts”: [
-(“Clarify what future skills the organisation truly prioritises.”, “I”),
-(“Build a team learning plan linking skills to actual projects.”, “C”),
-(“Ask staff what would make learning feel worthwhile or safe to try.”, “R”),
-(“Pair skills learning with a real mini-project to apply it immediately.”, “T”),
-],
-},
+DIMENSIONS = [
+    {
+        "key": "awareness",
+        "name": "Boundary Awareness",
+        "color": "#3B82F6",
+        "icon": "🔍",
+        "tagline": "Noticing and naming the limits of your practice",
+        "questions": [
+            "I can identify when I am working across different professional or disciplinary communities.",
+            "I notice when my assumptions differ from those of colleagues in other teams or organisations.",
+            "I can articulate what makes cross-boundary collaboration genuinely difficult.",
+            "I recognise when a boundary is limiting progress on a shared goal.",
+            "I am aware of how my 'home practice' shapes my perspective when I work in unfamiliar territory.",
+        ],
+        "feedback": [
+            "You may benefit from developing greater sensitivity to the invisible lines that shape collaboration. Try reflecting on moments of friction or surprise — these are often boundary signals.",
+            "You notice boundaries in familiar contexts. The next step is applying this awareness more consistently in unfamiliar or complex multi-stakeholder situations.",
+            "You have a well-developed capacity to name and navigate invisible boundaries. Consider helping others develop this awareness as part of your leadership practice.",
+        ],
+    },
+    {
+        "key": "coordination",
+        "name": "Coordination",
+        "color": "#10B981",
+        "icon": "🤝",
+        "tagline": "Building bridges, routines, and shared language",
+        "questions": [
+            "I actively create shared language or frameworks when working with people from different backgrounds.",
+            "I help establish common ground when groups with different goals need to collaborate.",
+            "I design artefacts or processes that allow people to work productively across organisational lines.",
+            "I am effective at managing handoffs and transitions between different teams or phases.",
+            "I build relationships intentionally to navigate institutional or cultural boundaries.",
+        ],
+        "feedback": [
+            "Consider how you might build more deliberate bridging structures. Boundary objects — shared artefacts, templates, frameworks — can help create common ground.",
+            "You coordinate well in familiar settings. Try experimenting with new bridging approaches in more complex or unfamiliar multi-stakeholder environments.",
+            "You are skilled at creating the scaffolding that makes cross-boundary work viable. Look for opportunities to teach and share these practices.",
+        ],
+    },
+    {
+        "key": "reflection",
+        "name": "Reflective Capacity",
+        "color": "#F59E0B",
+        "icon": "🪞",
+        "tagline": "Learning about yourself through encounters with difference",
+        "questions": [
+            "Encountering different professional perspectives causes me to question my own assumptions.",
+            "I actively seek out viewpoints that challenge my existing mental models.",
+            "I use cross-boundary encounters as opportunities to deepen my self-understanding.",
+            "I can articulate how working with others has changed how I see my own field.",
+            "I regularly create space to reflect on what I have learned from cross-boundary experiences.",
+        ],
+        "feedback": [
+            "Deepening your reflective practice could help you extract more learning from boundary encounters. Try journalling about moments of surprise or discomfort in collaborative work.",
+            "You reflect when prompted. Building regular reflection habits — even briefly — could significantly amplify your learning from boundary encounters.",
+            "You extract significant learning from your cross-boundary experiences through sustained reflection. Your perspective-taking capacity is a key leadership strength.",
+        ],
+    },
+    {
+        "key": "transformation",
+        "name": "Transformative Practice",
+        "color": "#8B5CF6",
+        "icon": "✨",
+        "tagline": "Generating new knowledge and practices through crossing",
+        "questions": [
+            "I have developed new approaches to my work by combining insights from different fields.",
+            "I contribute to creating shared solutions that would not emerge within a single discipline.",
+            "I help others see their work differently by introducing perspectives from outside their domain.",
+            "I translate ideas from one context in ways that create genuine value in another.",
+            "I am involved in shaping new practices or structures that bridge previously separate domains.",
+        ],
+        "feedback": [
+            "Your boundary crossings may not yet be generating transformative outputs. Reflect on what new practices could emerge from your current cross-boundary encounters.",
+            "You occasionally generate new insights from crossing. Look for deliberate opportunities to synthesise across domains and share what you create with both communities.",
+            "You are not just crossing boundaries — you are transforming practices on both sides. This is the highest expression of boundary-crossing leadership.",
+        ],
+    },
 ]
 
-FOOTER = “*Inspired by boundary-crossing research (Akkerman & Bakker, 2011).*”
+LIKERT = ["Rarely", "Sometimes", "Often", "Usually", "Almost Always"]
+
 
 # ─────────────────────────────────────────────────────────────────────────────
-
-# SCORING HELPERS
-
+#  UTILITIES
 # ─────────────────────────────────────────────────────────────────────────────
+def compute_scores(responses: dict) -> dict:
+    scores = {}
+    for dim in DIMENSIONS:
+        keys = [f"{dim['key']}_{i}" for i in range(5)]
+        vals = [responses.get(k, 3) for k in keys]
+        scores[dim["key"]] = round(sum(vals) / len(vals), 2)
+    return scores
 
-def score_mechanisms(answers):
-s = {“I”: 0, “C”: 0, “R”: 0, “T”: 0}
-for i, a in answers.items():
-if a:
-for (opt, m) in SCENARIOS[i][“opts”]:
-if a == opt:
-s[m] += 1
-return s
 
-def ranked(scores, reverse=True):
-return [m for m, _ in sorted(scores.items(), key=lambda x: x[1], reverse=reverse)]
+def score_tier(s: float):
+    """Return (label, hex_color, feedback_index) for a score 1-5."""
+    if s < 2.5:
+        return "Emerging", "#F97316", 0
+    if s < 3.5:
+        return "Developing", "#3B82F6", 1
+    if s < 4.25:
+        return "Proficient", "#10B981", 2
+    return "Advanced", "#8B5CF6", 2
 
-def score_label(v, total=12):
-pct = v / total
-if pct >= 0.35:   return “Dominant”,  “#6D28D9”
-if pct >= 0.22:   return “Preferred”, “#2563EB”
-if pct >= 0.10:   return “Emerging”,  “#10B981”
-return “Latent”,  “#94A3B8”
 
-# ─────────────────────────────────────────────────────────────────────────────
+def make_radar(all_scores: list, labels: list = None, title: str = "Boundary Crossing Profile"):
+    dim_names = [d["name"] for d in DIMENSIONS]
+    dim_keys = [d["key"] for d in DIMENSIONS]
+    palette = ["#2563EB", "#F59E0B", "#10B981", "#8B5CF6", "#EF4444"]
 
-# CHARTS
+    fig = go.Figure()
+    if not isinstance(all_scores, list):
+        all_scores = [all_scores]
+    if labels is None:
+        labels = [f"Profile {i + 1}" for i in range(len(all_scores))]
 
-# ─────────────────────────────────────────────────────────────────────────────
+    for i, scores in enumerate(all_scores):
+        vals = [scores[k] for k in dim_keys] + [scores[dim_keys[0]]]
+        theta = dim_names + [dim_names[0]]
+        c = palette[i % len(palette)]
+        r, g, b = int(c[1:3], 16), int(c[3:5], 16), int(c[5:7], 16)
+        fig.add_trace(
+            go.Scatterpolar(
+                r=vals,
+                theta=theta,
+                fill="toself",
+                fillcolor=f"rgba({r},{g},{b},0.12)",
+                line=dict(color=c, width=2.5),
+                name=labels[i],
+            )
+        )
 
-def make_radar(all_scores: list, labels: list, title=“Boundary Compass Profile”):
-keys = [“I”, “C”, “R”, “T”]
-names = [MECH_META[k][“name”] for k in keys]
-palette = [”#2563EB”, “#F59E0B”, “#10B981”, “#8B5CF6”, “#EF4444”]
-
-```
-fig = go.Figure()
-for idx, scores in enumerate(all_scores):
-    vals = [scores[k] for k in keys] + [scores[keys[0]]]
-    theta = names + [names[0]]
-    c = palette[idx % len(palette)]
-    r, g, b = int(c[1:3], 16), int(c[3:5], 16), int(c[5:7], 16)
-    fig.add_trace(go.Scatterpolar(
-        r=vals, theta=theta, fill="toself",
-        fillcolor=f"rgba({r},{g},{b},0.13)",
-        line=dict(color=c, width=2.5),
-        name=labels[idx],
-    ))
-
-fig.update_layout(
-    polar=dict(
-        bgcolor="rgba(248,250,252,0.9)",
-        radialaxis=dict(
-            visible=True, range=[0, 12],
-            tickvals=[3, 6, 9, 12],
-            tickfont=dict(size=10, color="#94A3B8"),
-            gridcolor="rgba(148,163,184,0.25)",
-            linecolor="rgba(148,163,184,0.25)",
+    fig.update_layout(
+        polar=dict(
+            bgcolor="rgba(248,250,252,0.8)",
+            radialaxis=dict(
+                visible=True,
+                range=[0, 5],
+                tickvals=[1, 2, 3, 4, 5],
+                tickfont=dict(size=10, color="#94A3B8"),
+                gridcolor="rgba(148,163,184,0.3)",
+                linecolor="rgba(148,163,184,0.3)",
+            ),
+            angularaxis=dict(
+                gridcolor="rgba(148,163,184,0.2)",
+                tickfont=dict(size=12, color="#334155"),
+            ),
         ),
-        angularaxis=dict(
-            gridcolor="rgba(148,163,184,0.2)",
-            tickfont=dict(size=12, color="#334155"),
+        showlegend=len(all_scores) > 1,
+        legend=dict(font=dict(size=11)),
+        title=dict(
+            text=title,
+            font=dict(size=15, color="#1E293B", family="Georgia, serif"),
+            x=0.5,
         ),
-    ),
-    showlegend=len(all_scores) > 1,
-    legend=dict(font=dict(size=11)),
-    title=dict(text=title, font=dict(size=14, color="#1E293B", family="Georgia,serif"), x=0.5),
-    paper_bgcolor="white", plot_bgcolor="white",
-    height=380, margin=dict(t=60, b=10, l=20, r=20),
-)
-return fig
-```
+        paper_bgcolor="white",
+        plot_bgcolor="white",
+        height=440,
+        margin=dict(t=70, b=20, l=30, r=30),
+    )
+    return fig
 
-def make_bar(scores):
-keys = [“I”, “C”, “R”, “T”]
-colors = [MECH_META[k][“color”] for k in keys]
-names = [f”{MECH_META[k][‘icon’]} {MECH_META[k][‘name’]}” for k in keys]
-vals = [scores[k] for k in keys]
 
-```
-fig = go.Figure(go.Bar(
-    x=vals, y=names, orientation="h",
-    marker=dict(color=colors, line=dict(width=0)),
-    text=[str(v) for v in vals],
-    textposition="outside",
-    textfont=dict(size=13, color="#1E293B", family="DM Sans, sans-serif"),
-))
-fig.update_layout(
-    height=220,
-    xaxis=dict(range=[0, 14], showgrid=True, gridcolor="#E2E8F0",
-               tickfont=dict(color="#94A3B8", size=10), zeroline=False),
-    yaxis=dict(tickfont=dict(size=12, color="#334155")),
-    paper_bgcolor="white", plot_bgcolor="white",
-    margin=dict(t=10, b=10, l=10, r=40),
-    showlegend=False,
-)
-return fig
-```
+def html_report(name: str, scores: dict, class_code: str = "") -> str:
+    now = datetime.now().strftime("%d %B %Y")
+    rows = ""
+    for dim in DIMENSIONS:
+        s = scores[dim["key"]]
+        label, color, tier_idx = score_tier(s)
+        pct = (s / 5) * 100
+        feedback_text = dim["feedback"][tier_idx]
+        rows += f"""
+        <div style="background:white;border-radius:12px;padding:1.3rem 1.5rem;margin-bottom:1rem;
+                    border-left:5px solid {dim['color']};box-shadow:0 2px 8px rgba(0,0,0,0.07)">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px">
+            <span style="font-weight:700;font-size:1rem;color:#1E293B">{dim['icon']} {dim['name']}</span>
+            <span style="background:{color};color:white;padding:3px 12px;border-radius:999px;
+                         font-size:0.76rem;font-weight:700;letter-spacing:0.5px">{label.upper()}</span>
+          </div>
+          <div style="font-size:1.7rem;font-weight:800;color:#1E293B;margin-bottom:6px;font-family:Georgia,serif">
+            {s:.1f}<span style="font-size:1rem;font-weight:400;color:#94A3B8"> / 5.0</span></div>
+          <div style="background:#E2E8F0;border-radius:999px;height:8px;margin-bottom:10px">
+            <div style="background:{dim['color']};width:{pct:.0f}%;height:8px;border-radius:999px"></div>
+          </div>
+          <p style="margin:0;font-size:0.88rem;color:#64748B;line-height:1.7">{feedback_text}</p>
+        </div>"""
 
-# ─────────────────────────────────────────────────────────────────────────────
+    meta = f"{name}"
+    if class_code:
+        meta += f" &nbsp;·&nbsp; {class_code}"
+    meta += f" &nbsp;·&nbsp; {now}"
 
-# HTML REPORT
-
-# ─────────────────────────────────────────────────────────────────────────────
-
-def html_report(name, scores, class_code=””):
-now = datetime.now().strftime(”%d %B %Y”)
-meta = name
-if class_code:
-meta += f”  ·  {class_code}”
-meta += f”  ·  {now}”
-
-```
-order = ranked(scores)
-rows = ""
-for k in order:
-    m = MECH_META[k]
-    v = scores[k]
-    label, lc = score_label(v)[:2]
-    pct = (v / 12) * 100
-    rows += f"""
-    <div style="background:white;border-radius:12px;padding:1.2rem 1.5rem;margin-bottom:1rem;
-                border-left:5px solid {m['color']};box-shadow:0 2px 8px rgba(0,0,0,0.07)">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
-        <span style="font-size:1rem;font-weight:700;color:#1E293B">{m['icon']} {m['name']}</span>
-        <span style="background:{lc};color:white;padding:3px 12px;border-radius:999px;
-                     font-size:0.73rem;font-weight:700;letter-spacing:0.5px">{label.upper()}</span>
-      </div>
-      <div style="font-size:0.8rem;color:#94A3B8;margin-bottom:8px;font-style:italic">{m['tagline']}</div>
-      <div style="font-size:1.9rem;font-weight:800;color:#1E293B;font-family:Georgia,serif;margin-bottom:6px">
-        {v}<span style="font-size:1rem;font-weight:400;color:#94A3B8"> / 12</span></div>
-      <div style="background:#E2E8F0;border-radius:999px;height:7px;margin-bottom:10px">
-        <div style="background:{m['color']};width:{pct:.0f}%;height:7px;border-radius:999px"></div></div>
-      <p style="margin:0;font-size:0.88rem;color:#475569;line-height:1.7">{m['desc']}</p>
-    </div>"""
-
-low = ranked(scores, reverse=False)[:2]
-stretch_rows = "".join(
-    f"<li style='margin-bottom:0.5rem'><strong>{MECH_META[k]['name']}</strong> — {MICRO[k]}</li>"
-    for k in low
-)
-
-return f"""<!DOCTYPE html>
-```
-
+    return f"""<!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Boundary Compass — {name}</title>
+<title>Boundary Crossing Profile — {name}</title>
 <style>
   @import url('https://fonts.googleapis.com/css2?family=Lora:wght@400;700&family=DM+Sans:wght@400;500;600&display=swap');
-  body {{ font-family:'DM Sans',sans-serif; max-width:680px; margin:40px auto;
-          padding:0 24px; color:#1E293B; background:#F8FAFC; }}
-  .header {{ background:linear-gradient(135deg,#0F172A 0%,#1E3A8A 60%,#2563EB 100%);
-             border-radius:16px; padding:2.2rem 2rem; color:white; margin-bottom:1.5rem; }}
-  .header .label {{ font-size:0.62rem; letter-spacing:3px; text-transform:uppercase;
-                    opacity:0.6; margin-bottom:0.6rem; }}
-  .header h1 {{ margin:0; font-size:1.7rem; font-family:'Lora',Georgia,serif; font-weight:700; }}
-  .header .meta {{ margin:8px 0 0; opacity:0.8; font-size:0.88rem; }}
-  .section-title {{ font-family:'Lora',Georgia,serif; font-size:1.15rem; color:#1E293B;
-                    margin:1.5rem 0 0.75rem; }}
-  .stretch-box {{ background:#EFF6FF; border-left:4px solid #2563EB; border-radius:8px;
-                  padding:1.1rem 1.3rem; margin:1.25rem 0; }}
-  .stretch-box h3 {{ margin:0 0 0.5rem; color:#1D4ED8; font-size:0.88rem;
-                     text-transform:uppercase; letter-spacing:1px; }}
-  .stretch-box ul {{ margin:0; padding-left:1.2rem; color:#475569; font-size:0.9rem; line-height:1.8; }}
-  .footer {{ text-align:center; font-size:0.78rem; color:#CBD5E1; margin-top:2rem;
-             padding-top:1rem; border-top:1px solid #E2E8F0; }}
+  body {{
+    font-family: 'DM Sans', sans-serif;
+    max-width: 700px; margin: 40px auto; padding: 0 24px;
+    color: #1E293B; background: #F8FAFC;
+  }}
+  .header {{
+    background: linear-gradient(135deg, #0F172A 0%, #1E3A8A 60%, #2563EB 100%);
+    border-radius: 16px; padding: 2.5rem 2rem; color: white; margin-bottom: 1.5rem;
+  }}
+  .header .label {{
+    font-size: 0.65rem; letter-spacing: 3px; text-transform: uppercase;
+    opacity: 0.6; margin-bottom: 0.6rem;
+  }}
+  .header h1 {{
+    margin: 0; font-size: 1.8rem; font-family: 'Lora', Georgia, serif; font-weight: 700;
+  }}
+  .header .meta {{ margin: 8px 0 0; opacity: 0.8; font-size: 0.9rem; }}
+  .reflection {{
+    background: #EFF6FF; border-left: 4px solid #2563EB; border-radius: 8px;
+    padding: 1.2rem 1.4rem; margin: 1.5rem 0;
+  }}
+  .reflection h3 {{ margin: 0 0 0.5rem; color: #1D4ED8; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 1px; }}
+  .reflection p {{ margin: 0; color: #475569; font-size: 0.9rem; line-height: 1.7; font-style: italic; }}
+  .footer {{
+    text-align: center; font-size: 0.78rem; color: #CBD5E1; margin-top: 2rem; padding-top: 1rem;
+    border-top: 1px solid #E2E8F0;
+  }}
 </style>
 </head>
 <body>
   <div class="header">
-    <div class="label">The Boundary Compass · Singapore Manager Edition · MBX / IAL-SUSS</div>
-    <h1>🧭 Boundary Mechanism Profile</h1>
+    <div class="label">MBX · Master in Boundary-Crossing Learning and Leadership · IAL/SUSS</div>
+    <h1>Boundary Crossing Profile</h1>
     <div class="meta">{meta}</div>
   </div>
-  <p class="section-title">Your Mechanism Preferences</p>
   {rows}
-  <div class="stretch-box">
-    <h3>📈 Stretch Practices This Month</h3>
-    <ul>{stretch_rows}</ul>
+  <div class="reflection">
+    <h3>💭 Reflection Prompt</h3>
+    <p>Looking at your profile: Where does your highest score align with your current role?
+       Where is the gap between your boundary-crossing capacity and what your context demands?
+       What is one specific boundary you want to cross more effectively in the next three months?</p>
   </div>
-  <div class="footer">
-    Inspired by boundary-crossing research (Akkerman &amp; Bakker, 2011). {now}
-  </div>
+  <div class="footer">MBX Boundary Crossing Diagnostic · IAL/SUSS · {now}</div>
 </body>
 </html>"""
 
-# ─────────────────────────────────────────────────────────────────────────────
-
-# CSS
 
 # ─────────────────────────────────────────────────────────────────────────────
-
-def apply_css():
-st.markdown(”””
-
+#  CUSTOM CSS
+# ─────────────────────────────────────────────────────────────────────────────
+st.markdown(
+    """
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Lora:ital,wght@0,400;0,700;1,400&family=DM+Sans:wght@300;400;500;600;700&display=swap');
 
 html, body, [class*="css"] { font-family: 'DM Sans', sans-serif; }
-.main { background: #F8FAFC; }
-.block-container { padding-top: 1.5rem !important; max-width: 720px !important; padding-bottom: 3rem !important; }
-#MainMenu, header, footer { visibility: hidden; }
 
-/* Hero */
+.main { background: #F8FAFC; }
+
+.block-container {
+    padding-top: 1.5rem !important;
+    max-width: 700px !important;
+}
+
+/* Hero banner */
 .hero {
-    background: linear-gradient(135deg, #0F172A 0%, #1E3A8A 55%, #2563EB 100%);
-    border-radius: 18px; padding: 2.6rem 2.2rem; color: white;
-    margin-bottom: 1.5rem; text-align: center; position: relative; overflow: hidden;
+    background: linear-gradient(135deg, #0F172A 0%, #1E3A8A 60%, #2563EB 100%);
+    border-radius: 18px;
+    padding: 2.8rem 2.2rem;
+    color: white;
+    margin-bottom: 1.5rem;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
 }
 .hero::before {
-    content: ''; position: absolute; top: -60%; right: -15%;
-    width: 320px; height: 320px; background: rgba(255,255,255,0.035); border-radius: 50%;
+    content: '';
+    position: absolute;
+    top: -50%; right: -20%;
+    width: 300px; height: 300px;
+    background: rgba(255,255,255,0.04);
+    border-radius: 50%;
 }
-.hero-label { font-size:0.62rem; letter-spacing:3px; text-transform:uppercase; opacity:0.6; margin-bottom:0.8rem; }
+.hero-label {
+    font-size: 0.62rem; letter-spacing: 3px; text-transform: uppercase;
+    opacity: 0.6; margin-bottom: 0.8rem;
+}
 .hero h1 {
-    font-family: 'Lora', Georgia, serif; font-size: 2rem; font-weight: 700;
-    margin: 0; letter-spacing: -0.3px; line-height: 1.2;
+    font-family: 'Lora', Georgia, serif;
+    font-size: 2rem; font-weight: 700; margin: 0;
+    letter-spacing: -0.5px; line-height: 1.2;
 }
-.hero p { font-size: 0.92rem; opacity: 0.8; margin: 0.85rem auto 0; line-height: 1.65; max-width: 500px; }
+.hero p {
+    font-size: 0.95rem; opacity: 0.8; margin: 0.9rem 0 0;
+    line-height: 1.65; max-width: 500px; margin-left: auto; margin-right: auto;
+}
 
-/* Cards */
-.card {
-    background: white; border-radius: 14px; padding: 1.3rem 1.5rem;
+/* Info card */
+.info-card {
+    background: white; border-radius: 14px; padding: 1.4rem 1.6rem;
     margin-bottom: 1rem; box-shadow: 0 1px 6px rgba(15,23,42,0.07);
     border: 1px solid rgba(226,232,240,0.8);
 }
 
-/* Scenario */
-.sc-title { font-family:'Lora',Georgia,serif; font-size:1.15rem; font-weight:700; color:#1E293B; margin-bottom:0.4rem; }
-.sc-context { font-size:0.91rem; color:#475569; line-height:1.7; margin-bottom:0; }
-.sc-why { font-size:0.83rem; color:#64748B; font-style:italic; }
+/* Progress bar */
+.prog-wrap { margin-bottom: 1.2rem; }
+.prog-label {
+    display: flex; justify-content: space-between;
+    font-size: 0.78rem; color: #64748B; margin-bottom: 5px;
+}
+.prog-bg {
+    background: #E2E8F0; border-radius: 999px; height: 6px;
+}
+.prog-fill {
+    height: 6px; border-radius: 999px;
+    background: linear-gradient(90deg, #1E40AF, #3B82F6);
+    transition: width 0.4s ease;
+}
 
-/* Progress */
-.prog-wrap { margin-bottom:1.25rem; }
-.prog-label { display:flex; justify-content:space-between; font-size:0.78rem; color:#64748B; margin-bottom:5px; }
-.prog-bg { background:#E2E8F0; border-radius:999px; height:5px; }
-.prog-fill { height:5px; border-radius:999px; background:linear-gradient(90deg,#1E40AF,#3B82F6); }
+/* Dimension header */
+.dim-header {
+    background: white; border-radius: 14px; padding: 1.2rem 1.5rem;
+    margin-bottom: 1.2rem; box-shadow: 0 1px 5px rgba(15,23,42,0.07);
+    border: 1px solid rgba(226,232,240,0.8);
+    display: flex; align-items: center; gap: 1rem;
+}
+.dim-icon { font-size: 2rem; }
+.dim-name { font-weight: 700; font-size: 1.05rem; color: #1E293B; }
+.dim-tagline { font-size: 0.82rem; color: #64748B; margin-top: 2px; }
 
-/* Result cards */
+/* Question card */
+.q-card {
+    background: white; border-radius: 12px; padding: 1.1rem 1.4rem;
+    margin-bottom: 0.75rem; box-shadow: 0 1px 4px rgba(15,23,42,0.06);
+    border: 1px solid rgba(226,232,240,0.7);
+}
+.q-text {
+    font-size: 0.93rem; color: #1E293B; line-height: 1.6;
+    font-weight: 500; margin-bottom: 0.75rem;
+}
+
+/* Result score card */
 .r-card {
-    background:white; border-radius:14px; padding:1.2rem 1.5rem;
-    margin-bottom:0.85rem; box-shadow:0 2px 8px rgba(15,23,42,0.07);
-    border:1px solid rgba(226,232,240,0.8);
+    background: white; border-radius: 14px; padding: 1.3rem 1.5rem;
+    margin-bottom: 0.85rem; box-shadow: 0 2px 8px rgba(15,23,42,0.07);
+    border: 1px solid rgba(226,232,240,0.8);
 }
-.r-header { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:0.5rem; }
-.r-name { font-weight:700; font-size:1rem; color:#1E293B; }
-.r-tagline { font-size:0.78rem; color:#94A3B8; margin-top:3px; font-style:italic; }
-.r-badge { color:white; padding:3px 12px; border-radius:999px; font-size:0.71rem; font-weight:700; letter-spacing:0.5px; white-space:nowrap; }
-.r-score { font-family:'Lora',Georgia,serif; font-size:2.1rem; font-weight:700; color:#1E293B; margin-bottom:5px; line-height:1; }
-.r-score span { font-family:'DM Sans',sans-serif; font-size:1rem; font-weight:400; color:#94A3B8; }
-.r-bar-bg { background:#E2E8F0; border-radius:999px; height:6px; margin-bottom:0.85rem; }
-.r-bar-fill { height:6px; border-radius:999px; }
-.r-text { font-size:0.88rem; color:#475569; line-height:1.75; margin:0; }
-
-/* Stretch box */
-.stretch-box {
-    background:#EFF6FF; border-left:4px solid #2563EB; border-radius:10px;
-    padding:1.1rem 1.4rem; margin:1.25rem 0;
+.r-header {
+    display: flex; justify-content: space-between; align-items: flex-start;
+    margin-bottom: 0.6rem;
 }
-.stretch-title { font-weight:700; color:#1D4ED8; font-size:0.85rem; text-transform:uppercase; letter-spacing:0.8px; margin-bottom:0.5rem; }
+.r-name { font-weight: 700; font-size: 0.97rem; color: #1E293B; }
+.r-tagline { font-size: 0.78rem; color: #94A3B8; margin-top: 3px; }
+.r-badge {
+    color: white; padding: 3px 12px; border-radius: 999px;
+    font-size: 0.72rem; font-weight: 700; letter-spacing: 0.5px;
+    white-space: nowrap;
+}
+.r-score {
+    font-family: 'Lora', Georgia, serif;
+    font-size: 2rem; font-weight: 700; color: #1E293B;
+    margin-bottom: 6px; line-height: 1;
+}
+.r-score span { font-family: 'DM Sans', sans-serif; font-size: 1rem; font-weight: 400; color: #94A3B8; }
+.r-bar-bg { background: #E2E8F0; border-radius: 999px; height: 7px; margin-bottom: 0.85rem; }
+.r-bar-fill { height: 7px; border-radius: 999px; }
+.r-feedback { font-size: 0.88rem; color: #475569; line-height: 1.7; margin: 0; }
 
-/* Welcome submitted */
+/* Reflection box */
+.reflect-box {
+    background: #EFF6FF; border-left: 4px solid #2563EB; border-radius: 10px;
+    padding: 1.2rem 1.4rem; margin: 1.25rem 0;
+}
+.reflect-title { font-weight: 700; color: #1D4ED8; font-size: 0.85rem; margin-bottom: 0.5rem; }
+.reflect-text { font-size: 0.9rem; color: #475569; line-height: 1.7; margin: 0; font-style: italic; }
+
+/* Confirm box */
 .confirm-box {
-    background:linear-gradient(135deg,#064E3B,#059669);
-    border-radius:14px; padding:1.5rem 2rem; color:white; text-align:center; margin:1rem 0;
+    background: linear-gradient(135deg, #064E3B, #059669);
+    border-radius: 14px; padding: 1.5rem 2rem;
+    color: white; text-align: center; margin: 1rem 0;
 }
-.confirm-box h3 { margin:0 0 0.4rem; font-size:1.1rem; }
-.confirm-box p { margin:0; opacity:0.85; font-size:0.88rem; }
+.confirm-box h3 { margin: 0 0 0.4rem; font-size: 1.1rem; }
+.confirm-box p { margin: 0; opacity: 0.85; font-size: 0.88rem; }
 
 /* Buttons */
 .stButton > button {
-    background:linear-gradient(135deg,#1E3A8A,#2563EB) !important;
-    color:white !important; border:none !important; border-radius:10px !important;
-    padding:0.62rem 1.5rem !important; font-weight:600 !important; font-size:0.93rem !important;
-    width:100% !important; font-family:'DM Sans',sans-serif !important;
-    transition:all 0.2s !important;
+    background: linear-gradient(135deg, #1E3A8A, #2563EB) !important;
+    color: white !important; border: none !important;
+    border-radius: 10px !important; padding: 0.65rem 1.6rem !important;
+    font-weight: 600 !important; font-size: 0.95rem !important;
+    transition: all 0.2s !important; width: 100% !important;
+    font-family: 'DM Sans', sans-serif !important;
+    letter-spacing: 0.1px !important;
 }
-.stButton > button:hover { transform:translateY(-1px) !important; box-shadow:0 6px 18px rgba(37,99,235,0.3) !important; }
+.stButton > button:hover {
+    transform: translateY(-1px) !important;
+    box-shadow: 0 6px 20px rgba(37, 99, 235, 0.35) !important;
+}
 
-/* Radio */
-div[data-testid="stRadio"] > label { display:none !important; }
+/* Radio styling */
+div[data-testid="stRadio"] > label { display: none !important; }
 div[data-testid="stRadio"] div[role="radiogroup"] {
-    flex-direction:column !important; gap:0.5rem !important;
+    flex-direction: row !important; flex-wrap: wrap !important; gap: 0.4rem !important;
 }
 div[data-testid="stRadio"] div[role="radiogroup"] label {
-    background:#F8FAFC; border-radius:10px; padding:0.75rem 1rem !important;
-    font-size:0.9rem !important; color:#334155 !important;
-    border:1.5px solid #E2E8F0; transition:all 0.15s; cursor:pointer; width:100%;
+    background: #F1F5F9; border-radius: 8px; padding: 0.35rem 0.7rem;
+    font-size: 0.82rem !important; color: #475569 !important;
+    border: 1.5px solid transparent; transition: all 0.15s; cursor: pointer;
 }
-div[data-testid="stRadio"] div[role="radiogroup"] label:hover { background:#EFF6FF; border-color:#93C5FD; }
 div[data-testid="stRadio"] div[role="radiogroup"] label:has(input:checked) {
-    background:#EFF6FF; border-color:#2563EB; color:#1D4ED8 !important; font-weight:600;
+    background: #EFF6FF; border-color: #2563EB; color: #1D4ED8 !important; font-weight: 600;
 }
 
-/* Text input */
+/* Input fields */
 .stTextInput > div > div > input {
-    border-radius:10px !important; border:1.5px solid #E2E8F0 !important;
-    font-family:'DM Sans',sans-serif !important; font-size:0.95rem !important;
-    padding:0.6rem 1rem !important; background:white !important;
+    border-radius: 10px !important; border: 1.5px solid #E2E8F0 !important;
+    font-family: 'DM Sans', sans-serif !important; font-size: 0.95rem !important;
+    padding: 0.6rem 1rem !important; background: white !important;
 }
-.stTextInput > div > div > input:focus { border-color:#2563EB !important; box-shadow:0 0 0 3px rgba(37,99,235,0.1) !important; }
+.stTextInput > div > div > input:focus {
+    border-color: #2563EB !important; box-shadow: 0 0 0 3px rgba(37,99,235,0.1) !important;
+}
 
 /* Sidebar */
-section[data-testid="stSidebar"] { background:#0F172A !important; }
-section[data-testid="stSidebar"] * { color:white !important; }
+section[data-testid="stSidebar"] {
+    background: #0F172A !important;
+}
+section[data-testid="stSidebar"] * { color: white !important; }
 section[data-testid="stSidebar"] .stTextInput > div > div > input {
-    background:rgba(255,255,255,0.1) !important;
-    border-color:rgba(255,255,255,0.2) !important; color:white !important;
+    background: rgba(255,255,255,0.1) !important;
+    border-color: rgba(255,255,255,0.2) !important;
+    color: white !important;
 }
-
-/* Expander */
-details { border-radius:10px !important; background:white !important; border:1px solid #E2E8F0 !important; }
 </style>
+""",
+    unsafe_allow_html=True,
+)
 
-“””, unsafe_allow_html=True)
-
-# ─────────────────────────────────────────────────────────────────────────────
-
-# SESSION STATE
 
 # ─────────────────────────────────────────────────────────────────────────────
+#  SESSION STATE INITIALISATION
+# ─────────────────────────────────────────────────────────────────────────────
+def init():
+    defaults = {
+        "page": "welcome",      # welcome | diagnostic | results
+        "step": 0,              # 0-3: which dimension we're on
+        "responses": {},        # {dim_key_i: int}
+        "name": "",
+        "class_code": "",
+        "scores": None,
+        "submitted": False,
+        "fac_mode": False,
+    }
+    for k, v in defaults.items():
+        if k not in st.session_state:
+            st.session_state[k] = v
 
-def init_state():
-defaults = {
-“page”: “welcome”,
-“q_idx”: 0,
-“order”: None,
-“answers”: {},
-“name”: “”,
-“class_code”: “”,
-“submitted”: False,
-“fac_mode”: False,
-}
-for k, v in defaults.items():
-if k not in st.session_state:
-st.session_state[k] = v
+init()
+
 
 # ─────────────────────────────────────────────────────────────────────────────
-
-# SIDEBAR — FACILITATOR LOGIN
-
+#  SIDEBAR — FACILITATOR LOGIN
 # ─────────────────────────────────────────────────────────────────────────────
-
-def facilitator_sidebar():
 with st.sidebar:
-st.markdown(”### 🔒 Facilitator Access”)
-pw = st.text_input(“Password”, type=“password”, key=“fac_pw”, label_visibility=“collapsed”)
-if st.button(“Enter Facilitator View”, key=“fac_login”):
-if pw == FACILITATOR_PASSWORD:
-st.session_state.fac_mode = True
-st.rerun()
-else:
-st.error(“Incorrect password”)
-if st.session_state.fac_mode:
-st.success(“✅ Facilitator mode active”)
-if st.button(“Exit”):
-st.session_state.fac_mode = False
-st.rerun()
-st.markdown(”—”)
-store = get_class_store()
-if store and st.button(“🗑 Clear All Results”):
-store.clear()
-st.rerun()
-
-# ─────────────────────────────────────────────────────────────────────────────
-
-# FACILITATOR DASHBOARD
-
-# ─────────────────────────────────────────────────────────────────────────────
-
-def show_facilitator():
-store = get_class_store()
-st.markdown(”””
-<div class="hero" style="text-align:left;padding:1.8rem 2rem">
-<div class="hero-label">Facilitator Dashboard · MBX</div>
-<h1 style="font-size:1.55rem">🎓 Class Compass Results</h1>
-</div>”””, unsafe_allow_html=True)
-
-```
-if not store:
-    st.info("📭 No submissions yet. Ask participants to submit once they complete the quiz.")
-    return
-
-st.metric("Participants submitted", len(store))
-keys = ["I", "C", "R", "T"]
-
-all_scores = [r["scores"] for r in store]
-avg = {k: round(sum(s[k] for s in all_scores) / len(all_scores), 1) for k in keys}
-
-col1, col2 = st.columns(2)
-with col1:
-    st.plotly_chart(make_radar([avg], ["Class Average"], "Class Average"), use_container_width=True)
-with col2:
-    labels = [r["name"].split()[0] for r in store]
-    st.plotly_chart(make_radar(all_scores, labels, "All Participants"), use_container_width=True)
-
-# Table
-st.markdown("#### Individual Scores")
-rows = []
-for r in store:
-    row = {"Name": r["name"], "Time": r["timestamp"]}
-    for k in keys:
-        row[MECH_META[k]["name"]] = r["scores"][k]
-    row["Top Move"] = MECH_META[ranked(r["scores"])[0]]["name"]
-    row["Class Code"] = r.get("class_code", "—")
-    rows.append(row)
-df = pd.DataFrame(rows)
-st.dataframe(df, use_container_width=True, hide_index=True)
-csv = df.to_csv(index=False)
-st.download_button("📥 Download CSV", data=csv,
-                   file_name=f"compass_results_{datetime.now().strftime('%Y%m%d_%H%M')}.csv",
-                   mime="text/csv")
-
-# Debrief starters
-st.markdown("---")
-st.markdown("#### 💬 Debrief Discussion Starters")
-dom = ranked(avg)[0]
-lat = ranked(avg, reverse=False)[0]
-st.markdown(f"""
-<div style="background:#F0FDF4;border-left:4px solid #10B981;border-radius:10px;
-            padding:1rem 1.2rem;margin-bottom:0.75rem">
-  <strong>Collective dominant move: {MECH_META[dom]['icon']} {MECH_META[dom]['name']} ({avg[dom]:.1f}/12)</strong><br>
-  <span style="font-size:0.9rem;color:#475569">What does it say about your collective leadership culture
-  that this is the move most of you reach for first?</span>
-</div>
-<div style="background:#FFF7ED;border-left:4px solid #F59E0B;border-radius:10px;
-            padding:1rem 1.2rem;margin-bottom:0.75rem">
-  <strong>Shared latent move: {MECH_META[lat]['icon']} {MECH_META[lat]['name']} ({avg[lat]:.1f}/12)</strong><br>
-  <span style="font-size:0.9rem;color:#475569">What structural or cultural factors in Singapore public sector 
-  work might make this move feel risky or undervalued?</span>
-</div>
-<div style="background:#EFF6FF;border-left:4px solid #2563EB;border-radius:10px;
-            padding:1rem 1.2rem">
-  <strong>Profile diversity</strong><br>
-  <span style="font-size:0.9rem;color:#475569">Find someone whose top move differs from yours. 
-  Pair up: share one scenario where your different instincts would complement each other.</span>
-</div>""", unsafe_allow_html=True)
-```
-
-# ─────────────────────────────────────────────────────────────────────────────
-
-# WELCOME PAGE
-
-# ─────────────────────────────────────────────────────────────────────────────
-
-def show_welcome():
-st.markdown(”””
-<div class="hero">
-<div class="hero-label">MBX · IAL/SUSS · Supporting Development</div>
-<div style="font-size:3rem;margin-bottom:0.6rem">🧭</div>
-<h1>The Boundary Compass</h1>
-<p>Reflect on how you lead change, balance priorities, and enable future readiness
-— through 12 real Singapore manager scenarios.</p>
-</div>”””, unsafe_allow_html=True)
-
-```
-with st.expander("ℹ️ How this works", expanded=False):
-    st.markdown("""
-```
-
-In Singapore workplaces, middle managers sit **at the boundary** — between strategy and execution,
-stability and change, compliance and innovation.
-
-This tool surfaces which of four **boundary-crossing mechanisms** you tend to reach for:
-
-| |Mechanism         |What you do                                     |
-|-|------------------|------------------------------------------------|
-|🎯|**Identification**|Clarify purpose, constraints, and direction     |
-|🤝|**Coordination**  |Build shared routines, plans, and accountability|
-|🪞|**Reflection**    |Pause to understand perspectives and assumptions|
-|✨|**Transformation**|Run small experiments to create new practice    |
-
-Each scenario is drawn from real Singapore public sector contexts.  
-Choose what you’d **most likely do** — there are no right answers.
-
-*Inspired by Akkerman & Bakker (2011).*
-“””)
-
-```
-st.markdown("<div style='height:0.4rem'></div>", unsafe_allow_html=True)
-name_val = st.text_input("Your name", value=st.session_state.name,
-                          placeholder="e.g. Wei Lin", label_visibility="visible")
-code_val = st.text_input("Class code (from your facilitator)",
-                          value=st.session_state.class_code,
-                          placeholder="e.g. MBX-APR2026", label_visibility="visible")
-
-st.markdown("""
-<div style="display:flex;gap:0.75rem;margin:1rem 0;flex-wrap:wrap">
-  <div style="background:white;border-radius:10px;padding:0.7rem 1rem;flex:1;min-width:110px;
-              box-shadow:0 1px 4px rgba(0,0,0,0.07);text-align:center;border:1px solid #E2E8F0">
-    <div style="font-size:1.3rem;margin-bottom:2px">📋</div>
-    <div style="font-size:0.75rem;font-weight:600;color:#475569">12 scenarios</div>
-  </div>
-  <div style="background:white;border-radius:10px;padding:0.7rem 1rem;flex:1;min-width:110px;
-              box-shadow:0 1px 4px rgba(0,0,0,0.07);text-align:center;border:1px solid #E2E8F0">
-    <div style="font-size:1.3rem;margin-bottom:2px">⏱</div>
-    <div style="font-size:0.75rem;font-weight:600;color:#475569">~10 minutes</div>
-  </div>
-  <div style="background:white;border-radius:10px;padding:0.7rem 1rem;flex:1;min-width:110px;
-              box-shadow:0 1px 4px rgba(0,0,0,0.07);text-align:center;border:1px solid #E2E8F0">
-    <div style="font-size:1.3rem;margin-bottom:2px">📄</div>
-    <div style="font-size:0.75rem;font-weight:600;color:#475569">Download report</div>
-  </div>
-</div>""", unsafe_allow_html=True)
-
-if st.button("Begin Scenarios →"):
-    if not name_val.strip():
-        st.warning("Please enter your name to continue.")
-    else:
-        st.session_state.name = name_val.strip()
-        st.session_state.class_code = code_val.strip()
-        order = list(range(len(SCENARIOS)))
-        random.shuffle(order)
-        st.session_state.order = order
-        st.session_state.answers = {}
-        st.session_state.q_idx = 0
-        st.session_state.page = "quiz"
-        st.rerun()
-```
-
-# ─────────────────────────────────────────────────────────────────────────────
-
-# QUIZ PAGE
-
-# ─────────────────────────────────────────────────────────────────────────────
-
-def show_quiz():
-idx = st.session_state.q_idx
-total = len(SCENARIOS)
-sc_i = st.session_state.order[idx]
-sc = SCENARIOS[sc_i]
-
-```
-pct = idx / total
-st.markdown(f"""
-<div class="prog-wrap">
-  <div class="prog-label">
-    <span>Scenario {idx + 1} of {total}</span>
-    <span>{int(pct * 100)}% complete</span>
-  </div>
-  <div class="prog-bg"><div class="prog-fill" style="width:{pct*100:.0f}%"></div></div>
-</div>""", unsafe_allow_html=True)
-
-st.markdown(f"""
-<div class="card">
-  <div class="sc-title">{sc['title']}</div>
-  <p class="sc-context">{sc['context']}</p>
-</div>""", unsafe_allow_html=True)
-
-with st.expander("🔍 Why is this a boundary moment?"):
-    st.markdown(f"<span class='sc-why'>{sc['why']}</span>", unsafe_allow_html=True)
-
-opts = [o for (o, _) in sc["opts"]]
-prev = st.session_state.answers.get(sc_i)
-idx_default = opts.index(prev) if prev in opts else 0
-
-choice = st.radio("Your most likely move:", opts, index=idx_default,
-                  label_visibility="collapsed", key=f"q_{sc_i}")
-
-is_last = idx == total - 1
-col1, col2 = st.columns(2)
-with col1:
-    if st.button("← Back", disabled=(idx == 0)):
-        st.session_state.answers[sc_i] = choice
-        st.session_state.q_idx -= 1
-        st.rerun()
-with col2:
-    label = "See My Results →" if is_last else "Next →"
-    if st.button(label):
-        st.session_state.answers[sc_i] = choice
-        if is_last:
-            st.session_state.page = "results"
+    st.markdown("### 🔒 Facilitator Access")
+    fac_pw = st.text_input("Password", type="password", key="fac_pw_input", label_visibility="collapsed")
+    if st.button("Enter Facilitator View", key="fac_login"):
+        if fac_pw == FACILITATOR_PASSWORD:
+            st.session_state.fac_mode = True
+            st.rerun()
         else:
-            st.session_state.q_idx += 1
-        st.rerun()
-```
-
-# ─────────────────────────────────────────────────────────────────────────────
-
-# RESULTS PAGE
-
-# ─────────────────────────────────────────────────────────────────────────────
-
-def show_results():
-scores = score_mechanisms(st.session_state.answers)
-name = st.session_state.name
-order = ranked(scores)
-
-```
-st.markdown(f"""
-<div class="hero" style="padding:2rem 2.2rem;text-align:left">
-  <div class="hero-label">Your Profile · MBX / IAL-SUSS</div>
-  <h1 style="font-size:1.5rem">🧭 Boundary Compass Profile</h1>
-  <p style="margin:6px 0 0;font-size:0.88rem">{name}</p>
-</div>""", unsafe_allow_html=True)
-
-# Charts
-col1, col2 = st.columns(2)
-with col1:
-    st.plotly_chart(make_radar([scores], [name]), use_container_width=True)
-with col2:
-    st.plotly_chart(make_bar(scores), use_container_width=True)
-
-# Score cards
-st.markdown("<h3 style='font-family:Lora,Georgia,serif;color:#1E293B;margin-bottom:0.75rem'>"
-            "Mechanism Breakdown</h3>", unsafe_allow_html=True)
-
-for k in order:
-    m = MECH_META[k]
-    v = scores[k]
-    label, lc = score_label(v)[:2]
-    pct = (v / 12) * 100
-    text = m["high"] if v >= 4 else m["low"]
-
-    st.markdown(f"""
-    <div class="r-card" style="border-left:5px solid {m['color']}">
-      <div class="r-header">
-        <div>
-          <div class="r-name">{m['icon']} {m['name']}</div>
-          <div class="r-tagline">{m['tagline']}</div>
-        </div>
-        <span class="r-badge" style="background:{lc}">{label.upper()}</span>
-      </div>
-      <div class="r-score">{v}<span> / 12</span></div>
-      <div class="r-bar-bg">
-        <div class="r-bar-fill" style="background:{m['color']};width:{pct:.0f}%"></div>
-      </div>
-      <p class="r-text">{text}</p>
-    </div>""", unsafe_allow_html=True)
-
-# Stretch
-low = order[-2:]
-stretch_items = "".join(
-    f"<li style='margin-bottom:0.6rem'><strong>{MECH_META[k]['name']}</strong> — {MICRO[k]}</li>"
-    for k in low
-)
-st.markdown(f"""
-<div class="stretch-box">
-  <div class="stretch-title">📈 Stretch Practices This Month</div>
-  <ul style="margin:0;padding-left:1.2rem;color:#475569;font-size:0.9rem;line-height:1.8">
-    {stretch_items}
-  </ul>
-</div>""", unsafe_allow_html=True)
-
-st.markdown("---")
-
-# Download
-report = html_report(name, scores, st.session_state.class_code)
-st.download_button(
-    "📄 Download My Report (open → Print → Save as PDF)",
-    data=report,
-    file_name=f"BoundaryCompass_{name.replace(' ', '_')}.html",
-    mime="text/html",
-    use_container_width=True,
-)
-
-st.markdown("<div style='height:0.4rem'></div>", unsafe_allow_html=True)
-
-# Submit to class
-if not st.session_state.submitted:
-    st.markdown("""
-    <div class="card">
-      <div style="font-weight:700;color:#1E293B;margin-bottom:0.4rem">📤 Submit to Class Dashboard</div>
-      <p style="margin:0;font-size:0.87rem;color:#475569;line-height:1.65">
-        Share your mechanism scores with the facilitator's live dashboard for class debrief. 
-        Only your name and four scores are shared — your individual scenario choices stay private.
-      </p>
-    </div>""", unsafe_allow_html=True)
-    if st.button("✅ Submit to Class"):
+            st.error("Incorrect password")
+    if st.session_state.fac_mode:
+        st.success("✅ Facilitator mode active")
+        if st.button("Exit Facilitator View"):
+            st.session_state.fac_mode = False
+            st.rerun()
+        st.markdown("---")
         store = get_class_store()
-        store.append({
-            "name": name,
-            "class_code": st.session_state.class_code,
-            "scores": scores,
-            "timestamp": datetime.now().strftime("%H:%M"),
-        })
-        st.session_state.submitted = True
-        st.rerun()
-else:
-    st.markdown("""
-    <div class="confirm-box">
-      <h3>✅ Submitted to Class Dashboard</h3>
-      <p>Your facilitator can see your profile in the live class overview.</p>
-    </div>""", unsafe_allow_html=True)
+        if store and st.button("🗑 Clear All Results"):
+            store.clear()
+            st.rerun()
 
-st.markdown("<div style='height:0.4rem'></div>", unsafe_allow_html=True)
 
-if st.button("🔄 Retake"):
-    for k in ["page", "q_idx", "order", "answers", "submitted"]:
-        st.session_state.pop(k, None)
-    st.rerun()
-
-st.markdown(f"<p style='text-align:center;color:#CBD5E1;font-size:0.78rem;margin-top:1rem'>{FOOTER}</p>",
-            unsafe_allow_html=True)
-```
-
-# ─────────────────────────────────────────────────────────────────────────────
-
-# MAIN
-
-# ─────────────────────────────────────────────────────────────────────────────
-
-def main():
-apply_css()
-init_state()
-facilitator_sidebar()
-
-```
+# ═════════════════════════════════════════════════════════════════════════════
+#  FACILITATOR DASHBOARD
+# ═════════════════════════════════════════════════════════════════════════════
 if st.session_state.fac_mode:
-    show_facilitator()
-elif st.session_state.page == "welcome":
-    show_welcome()
-elif st.session_state.page == "quiz":
-    show_quiz()
-elif st.session_state.page == "results":
-    show_results()
-```
+    store = get_class_store()
 
-if **name** == “**main**”:
-main()
+    st.markdown(
+        """
+    <div class="hero" style="text-align:left;padding:1.8rem 2rem">
+      <div class="hero-label">Facilitator Dashboard</div>
+      <h1 style="font-size:1.6rem">🎓 Class Results</h1>
+    </div>
+    """,
+        unsafe_allow_html=True,
+    )
+
+    if not store:
+        st.info("📭 No submissions yet. Share the app with participants and ask them to submit to class.")
+    else:
+        st.metric("Participants submitted", len(store))
+        st.markdown("---")
+
+        dim_keys = [d["key"] for d in DIMENSIONS]
+        all_dicts = [r["scores"] for r in store]
+
+        # Aggregate average
+        avg = {k: round(sum(r[k] for r in all_dicts) / len(all_dicts), 2) for k in dim_keys}
+
+        col1, col2 = st.columns(2)
+        with col1:
+            st.plotly_chart(
+                make_radar([avg], ["Class Average"], "Class Average"),
+                use_container_width=True,
+            )
+        with col2:
+            labels = [r["name"].split()[0] for r in store]  # first name only for chart
+            st.plotly_chart(
+                make_radar(all_dicts, labels, "All Participants"),
+                use_container_width=True,
+            )
+
+        # Results table
+        st.markdown("#### Individual Scores")
+        rows = []
+        for r in store:
+            row = {"Name": r["name"], "Time": r["timestamp"]}
+            for d in DIMENSIONS:
+                row[d["name"]] = r["scores"][d["key"]]
+            row["Class Code"] = r.get("class_code", "—")
+            rows.append(row)
+        df = pd.DataFrame(rows)
+        st.dataframe(df, use_container_width=True, hide_index=True)
+
+        # CSV download
+        csv = df.to_csv(index=False)
+        st.download_button(
+            "📥 Download Results CSV",
+            data=csv,
+            file_name=f"mbx_results_{datetime.now().strftime('%Y%m%d_%H%M')}.csv",
+            mime="text/csv",
+        )
+
+        # Class discussion starters
+        st.markdown("---")
+        st.markdown("#### 💬 Discussion Prompts for Debrief")
+        
+        # Find highest & lowest average dim
+        sorted_dims = sorted(dim_keys, key=lambda k: avg[k])
+        lowest_dim = next(d for d in DIMENSIONS if d["key"] == sorted_dims[0])
+        highest_dim = next(d for d in DIMENSIONS if d["key"] == sorted_dims[-1])
+        
+        st.markdown(
+            f"""
+        <div style="background:#F0FDF4;border-left:4px solid #10B981;border-radius:10px;
+                    padding:1rem 1.2rem;margin-bottom:0.75rem">
+          <strong>Collective strength: {highest_dim['icon']} {highest_dim['name']} 
+          ({avg[highest_dim['key']]:.1f}/5)</strong><br>
+          <span style="font-size:0.9rem;color:#475569">What conditions in your organisations 
+          have made this your strongest collective capacity?</span>
+        </div>
+        <div style="background:#FFF7ED;border-left:4px solid #F59E0B;border-radius:10px;
+                    padding:1rem 1.2rem;margin-bottom:0.75rem">
+          <strong>Shared growth edge: {lowest_dim['icon']} {lowest_dim['name']} 
+          ({avg[lowest_dim['key']]:.1f}/5)</strong><br>
+          <span style="font-size:0.9rem;color:#475569">What structural or cultural factors 
+          might be limiting this across your different contexts?</span>
+        </div>
+        <div style="background:#EFF6FF;border-left:4px solid #2563EB;border-radius:10px;
+                    padding:1rem 1.2rem">
+          <strong>Individual variation</strong><br>
+          <span style="font-size:0.9rem;color:#475569">Whose profile surprised them the most? 
+          What does the spread in the class tell us about our different practice contexts?</span>
+        </div>
+        """,
+            unsafe_allow_html=True,
+        )
+
+    st.stop()
+
+
+# ═════════════════════════════════════════════════════════════════════════════
+#  PAGE: WELCOME
+# ═════════════════════════════════════════════════════════════════════════════
+if st.session_state.page == "welcome":
+    st.markdown(
+        """
+    <div class="hero">
+      <div class="hero-label">MBX · IAL/SUSS</div>
+      <div style="font-size:2.8rem;margin-bottom:0.6rem">🔀</div>
+      <h1>Boundary Crossing<br>Diagnostic</h1>
+      <p>A self-assessment tool for the MBX community — understand your current 
+      boundary-crossing capabilities across four dimensions of practice.</p>
+    </div>
+    """,
+        unsafe_allow_html=True,
+    )
+
+    st.markdown(
+        """
+    <div class="info-card">
+      <p style="margin:0;color:#475569;line-height:1.75;font-size:0.94rem">
+        This diagnostic takes about <strong>8–10 minutes</strong>. You will respond to 
+        <strong>20 statements</strong> across four dimensions drawn from boundary-crossing 
+        theory (Akkerman &amp; Bakker), then receive a personalised radar profile with 
+        developmental feedback.<br><br>
+        There are no right or wrong answers — respond based on your 
+        <em>typical experience</em>, not an ideal self.
+      </p>
+    </div>
+    <div style="display:flex;gap:0.75rem;margin-bottom:1.25rem;flex-wrap:wrap">
+      <div style="background:white;border-radius:10px;padding:0.75rem 1rem;flex:1;min-width:130px;
+                  box-shadow:0 1px 4px rgba(0,0,0,0.07);text-align:center">
+        <div style="font-size:1.4rem;margin-bottom:3px">🔍</div>
+        <div style="font-size:0.78rem;font-weight:600;color:#1E293B">Boundary<br>Awareness</div>
+      </div>
+      <div style="background:white;border-radius:10px;padding:0.75rem 1rem;flex:1;min-width:130px;
+                  box-shadow:0 1px 4px rgba(0,0,0,0.07);text-align:center">
+        <div style="font-size:1.4rem;margin-bottom:3px">🤝</div>
+        <div style="font-size:0.78rem;font-weight:600;color:#1E293B">Coordination</div>
+      </div>
+      <div style="background:white;border-radius:10px;padding:0.75rem 1rem;flex:1;min-width:130px;
+                  box-shadow:0 1px 4px rgba(0,0,0,0.07);text-align:center">
+        <div style="font-size:1.4rem;margin-bottom:3px">🪞</div>
+        <div style="font-size:0.78rem;font-weight:600;color:#1E293B">Reflective<br>Capacity</div>
+      </div>
+      <div style="background:white;border-radius:10px;padding:0.75rem 1rem;flex:1;min-width:130px;
+                  box-shadow:0 1px 4px rgba(0,0,0,0.07);text-align:center">
+        <div style="font-size:1.4rem;margin-bottom:3px">✨</div>
+        <div style="font-size:0.78rem;font-weight:600;color:#1E293B">Transformative<br>Practice</div>
+      </div>
+    </div>
+    """,
+        unsafe_allow_html=True,
+    )
+
+    name_val = st.text_input(
+        "Your name",
+        value=st.session_state.name,
+        placeholder="e.g. Wei Lin",
+        label_visibility="visible",
+    )
+    code_val = st.text_input(
+        "Class code (provided by your facilitator)",
+        value=st.session_state.class_code,
+        placeholder="e.g. MBX-APR2026",
+        label_visibility="visible",
+    )
+
+    if st.button("Begin Diagnostic →"):
+        if not name_val.strip():
+            st.warning("Please enter your name to continue.")
+        else:
+            st.session_state.name = name_val.strip()
+            st.session_state.class_code = code_val.strip()
+            st.session_state.page = "diagnostic"
+            st.session_state.step = 0
+            st.rerun()
+
+
+# ═════════════════════════════════════════════════════════════════════════════
+#  PAGE: DIAGNOSTIC
+# ═════════════════════════════════════════════════════════════════════════════
+elif st.session_state.page == "diagnostic":
+    step = st.session_state.step
+    dim = DIMENSIONS[step]
+    progress_pct = step / len(DIMENSIONS)
+
+    # Progress bar
+    st.markdown(
+        f"""
+    <div class="prog-wrap">
+      <div class="prog-label">
+        <span>Section {step + 1} of {len(DIMENSIONS)} — {dim['name']}</span>
+        <span>{int(progress_pct * 100)}% complete</span>
+      </div>
+      <div class="prog-bg">
+        <div class="prog-fill" style="width:{progress_pct * 100:.0f}%"></div>
+      </div>
+    </div>
+    """,
+        unsafe_allow_html=True,
+    )
+
+    # Dimension header
+    st.markdown(
+        f"""
+    <div class="dim-header" style="border-left:5px solid {dim['color']}">
+      <div class="dim-icon">{dim['icon']}</div>
+      <div>
+        <div class="dim-name">{dim['name']}</div>
+        <div class="dim-tagline">{dim['tagline']}</div>
+      </div>
+    </div>
+    """,
+        unsafe_allow_html=True,
+    )
+
+    st.markdown(
+        "<p style='font-size:0.82rem;color:#94A3B8;margin-bottom:0.75rem'>"
+        "Rate each statement: 1 = Rarely · 5 = Almost Always</p>",
+        unsafe_allow_html=True,
+    )
+
+    # Questions
+    all_answered = True
+    for i, question in enumerate(dim["questions"]):
+        key = f"{dim['key']}_{i}"
+        current = st.session_state.responses.get(key, None)
+
+        with st.container():
+            st.markdown(
+                f'<div class="q-card"><p class="q-text">{i + 1}. {question}</p></div>',
+                unsafe_allow_html=True,
+            )
+            response = st.radio(
+                label=f"q_{key}",
+                options=list(range(1, 6)),
+                format_func=lambda x: f"{x} — {LIKERT[x - 1]}",
+                horizontal=True,
+                index=current - 1 if current is not None else None,
+                key=f"radio_{key}",
+            )
+            if response is None:
+                all_answered = False
+            else:
+                st.session_state.responses[key] = response
+
+    st.markdown("<div style='height:0.5rem'></div>", unsafe_allow_html=True)
+
+    # Navigation
+    is_last = step == len(DIMENSIONS) - 1
+    col1, col2 = st.columns([1, 2])
+    with col1:
+        if step > 0:
+            if st.button("← Back"):
+                st.session_state.step -= 1
+                st.rerun()
+    with col2:
+        next_label = (
+            "View My Results →"
+            if is_last
+            else f"Next: {DIMENSIONS[step + 1]['name']} →"
+        )
+        if st.button(next_label):
+            if not all_answered:
+                st.warning("Please respond to all statements before continuing.")
+            elif is_last:
+                st.session_state.scores = compute_scores(st.session_state.responses)
+                st.session_state.page = "results"
+                st.rerun()
+            else:
+                st.session_state.step += 1
+                st.rerun()
+
+
+# ═════════════════════════════════════════════════════════════════════════════
+#  PAGE: RESULTS
+# ═════════════════════════════════════════════════════════════════════════════
+elif st.session_state.page == "results":
+    scores = st.session_state.scores
+    name = st.session_state.name
+
+    st.markdown(
+        f"""
+    <div class="hero" style="padding:2rem;text-align:left">
+      <div class="hero-label">Your Profile · MBX</div>
+      <h1 style="font-size:1.5rem">Boundary Crossing Profile</h1>
+      <p style="margin:6px 0 0;font-size:0.9rem">{name}</p>
+    </div>
+    """,
+        unsafe_allow_html=True,
+    )
+
+    # Radar chart
+    st.plotly_chart(make_radar([scores], [name]), use_container_width=True)
+
+    # Score cards
+    st.markdown(
+        "<h3 style='font-family:Lora,Georgia,serif;color:#1E293B;margin-bottom:0.75rem'>"
+        "Dimension Scores</h3>",
+        unsafe_allow_html=True,
+    )
+
+    for dim in DIMENSIONS:
+        s = scores[dim["key"]]
+        label, color, tier_idx = score_tier(s)
+        pct = (s / 5) * 100
+        feedback_text = dim["feedback"][tier_idx]
+
+        st.markdown(
+            f"""
+        <div class="r-card" style="border-left:5px solid {dim['color']}">
+          <div class="r-header">
+            <div>
+              <div class="r-name">{dim['icon']} {dim['name']}</div>
+              <div class="r-tagline">{dim['tagline']}</div>
+            </div>
+            <span class="r-badge" style="background:{color}">{label.upper()}</span>
+          </div>
+          <div class="r-score">{s:.1f}<span> / 5.0</span></div>
+          <div class="r-bar-bg">
+            <div class="r-bar-fill" style="background:{dim['color']};width:{pct:.0f}%"></div>
+          </div>
+          <p class="r-feedback">{feedback_text}</p>
+        </div>
+        """,
+            unsafe_allow_html=True,
+        )
+
+    # Reflection prompt
+    st.markdown(
+        """
+    <div class="reflect-box">
+      <div class="reflect-title">💭 Reflection Prompt</div>
+      <p class="reflect-text">
+        Looking at your profile: Where does your highest score align with your current role?
+        Where is the gap between your boundary-crossing capacity and what your context demands?
+        What is one specific boundary you want to cross more effectively in the next three months?
+      </p>
+    </div>
+    """,
+        unsafe_allow_html=True,
+    )
+
+    st.markdown("---")
+
+    # Download report
+    report = html_report(name, scores, st.session_state.class_code)
+    st.download_button(
+        "📄 Download My Report (open in browser → Print → Save as PDF)",
+        data=report,
+        file_name=f"BC_Profile_{name.replace(' ', '_')}.html",
+        mime="text/html",
+        use_container_width=True,
+    )
+
+    st.markdown("<div style='height:0.4rem'></div>", unsafe_allow_html=True)
+
+    # Submit to class
+    if not st.session_state.submitted:
+        st.markdown(
+            """
+        <div class="info-card">
+          <div style="font-weight:700;color:#1E293B;margin-bottom:0.4rem">📤 Submit to Class Dashboard</div>
+          <p style="margin:0;font-size:0.87rem;color:#475569;line-height:1.65">
+            Share your scores anonymously with your facilitator's class dashboard. 
+            Only your name and dimension scores are submitted — your individual question 
+            responses remain private.
+          </p>
+        </div>
+        """,
+            unsafe_allow_html=True,
+        )
+        if st.button("✅ Submit to Class"):
+            store = get_class_store()
+            store.append(
+                {
+                    "name": name,
+                    "class_code": st.session_state.class_code,
+                    "scores": scores,
+                    "timestamp": datetime.now().strftime("%H:%M"),
+                }
+            )
+            st.session_state.submitted = True
+            st.rerun()
+    else:
+        st.markdown(
+            """
+        <div class="confirm-box">
+          <h3>✅ Submitted to Class Dashboard</h3>
+          <p>Your facilitator can now see your profile in the class overview.</p>
+        </div>
+        """,
+            unsafe_allow_html=True,
+        )
+
+    st.markdown("<div style='height:0.4rem'></div>", unsafe_allow_html=True)
+
+    if st.button("🔄 Retake Diagnostic"):
+        for k in ["page", "step", "responses", "scores", "submitted"]:
+            if k in st.session_state:
+                del st.session_state[k]
+        st.rerun()
