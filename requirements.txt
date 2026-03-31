@@ -2,3 +2,4 @@ streamlit
 plotly
 pillow
 pandas
+requests
